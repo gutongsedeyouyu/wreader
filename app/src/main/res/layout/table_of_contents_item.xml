@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_view"
+    android:layout_width="match_parent"
+    android:layout_height="45dp"
+    android:background="@drawable/trans_btn_bg"
+    tools:background="@color/bg_default">
+
+    <TextView
+        android:id="@+id/primary_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/margin_default"
+        android:layout_marginRight="@dimen/margin_default"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:textSize="@dimen/text_size_default"
+        android:textColor="@color/fg_primary"
+        tools:text="Chapter Title"/>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginLeft="@dimen/margin_default"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/divider_bg"/>
+
+</android.support.constraint.ConstraintLayout>

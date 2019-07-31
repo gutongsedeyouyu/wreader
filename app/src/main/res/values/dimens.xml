@@ -1,0 +1,17 @@
+<resources>
+    <dimen name="navigation_bar_height">44dp</dimen>
+    <dimen name="margin_default">10dp</dimen>
+    <dimen name="margin_narrow">4dp</dimen>
+    <dimen name="margin_wide">18dp</dimen>
+    <dimen name="padding_default">10dp</dimen>
+    <dimen name="padding_narrow">5dp</dimen>
+    <dimen name="padding_wide">18dp</dimen>
+
+    <dimen name="text_size_default">15sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+
+    <dimen name="divider_height">0.5dp</dimen>
+
+    <dimen name="reader_not_loaded_panel_height">200dp</dimen>
+</resources>

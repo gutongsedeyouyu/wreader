@@ -1,0 +1,25 @@
+<resources>
+
+    <style name="AppTheme" parent="android:Theme.Holo.NoActionBar">
+    </style>
+
+    <style name="PrimaryButton" parent="AppTheme">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/prim_btn_fg</item>
+        <item name="android:background">@drawable/prim_btn_bg</item>
+    </style>
+
+    <style name="SeekBar" parent="AppTheme">
+        <item name="android:thumbTintMode">src_in</item>
+        <item name="android:thumbTint">@color/fg_checked</item>
+        <item name="android:progressTint">@color/fg_checked</item>
+        <item name="android:backgroundTint">@color/divider_bg</item>
+    </style>
+
+    <style name="CheckBox" parent="AppTheme">
+        <item name="android:button">@null</item>
+        <item name="android:drawableLeft">@drawable/check_box</item>
+        <item name="android:drawablePadding">@dimen/padding_narrow</item>
+    </style>
+
+</resources>

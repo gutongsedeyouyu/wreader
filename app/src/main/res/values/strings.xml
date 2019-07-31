@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">WReader</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="load_failed">Load Failed :-(</string>
+    <string name="reload">Reload</string>
+    <string name="payment_required">Payment Required</string>
+    <string name="purchase">Purchase</string>
+    <string name="unsupported_action">Please upgrade your App.</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+
+    <string name="bookshelf">Bookshelf</string>
+    <string name="bookstore">Bookstore</string>
+    <string name="table_of_contents">Table of Contents</string>
+    <string name="table_of_contents_short">Contents</string>
+    <string name="progress">Progress</string>
+    <string name="color">Color</string>
+    <string name="previous_chapter_short">Previous</string>
+    <string name="next_chapter_short">Next</string>
+    <string name="page_turning">Page Turning</string>
+    <string name="page_turning_curl">Page Curl</string>
+    <string name="page_turning_cover">Cover</string>
+
+    <string name="last_read">Last Read:</string>
+</resources>

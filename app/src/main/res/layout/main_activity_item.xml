@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/trans_btn_bg"
+    tools:background="@color/bg_default">
+
+    <TextView
+        android:id="@+id/book_name_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_default"
+        android:layout_marginLeft="@dimen/margin_default"
+        android:layout_marginRight="@dimen/margin_default"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="@dimen/text_size_large"
+        android:textColor="@color/fg_primary"
+        tools:text="Name of the book"/>
+
+    <TextView
+        android:id="@+id/introduction_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_narrow"
+        android:layout_marginLeft="@dimen/margin_default"
+        android:layout_marginRight="@dimen/margin_default"
+        app:layout_constraintTop_toBottomOf="@+id/book_name_text_view"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="@dimen/text_size_default"
+        android:textColor="@color/fg_secondary"
+        android:maxLines="3"
+        android:ellipsize="end"
+        tools:text="Some introduction"/>
+
+    <TextView
+        android:id="@+id/last_read_time_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/margin_narrow"
+        app:layout_constraintBaseline_toBaselineOf="@+id/last_read_time_text_view"
+        app:layout_constraintRight_toLeftOf="@+id/last_read_time_text_view"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/fg_secondary"
+        android:text="@string/last_read"/>
+
+    <TextView
+        android:id="@+id/last_read_time_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_narrow"
+        android:layout_marginRight="@dimen/margin_default"
+        app:layout_constraintTop_toBottomOf="@+id/introduction_text_view"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="@dimen/text_size_small"
+        android:textColor="@color/fg_secondary"
+        tools:text="2018-10-30 00:42"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginTop="@dimen/margin_narrow"
+        app:layout_constraintTop_toBottomOf="@+id/last_read_time_text_view"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/divider_bg"/>
+
+</android.support.constraint.ConstraintLayout>
