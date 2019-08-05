@@ -6,7 +6,7 @@ import android.widget.TextView;
 
 import org.wreader.reader.R;
 
-class ReaderPaymentRequiredView implements View.OnClickListener {
+class ReaderPaymentRequiredView implements ReaderChildView, View.OnClickListener {
     private final ReaderView readerView;
 
     private View contentView;
@@ -24,21 +24,31 @@ class ReaderPaymentRequiredView implements View.OnClickListener {
         purchaseButton.setOnClickListener(this);
     }
 
-    void setColorSetting(ReaderColorSetting colorSetting) {
+    @Override
+    public View getContentView() {
+        return contentView;
+    }
+
+    @Override
+    public void setColorSetting(ReaderColorSetting colorSetting) {
         divider.setBackgroundColor(colorSetting.dividerColor);
         paymentRequiredTextView.setTextColor(colorSetting.textColorPrimary);
     }
 
-    void show(Chapter chapter) {
+    @Override
+    public void show(Chapter chapter) {
         contentView.setVisibility(View.VISIBLE);
+        contentView.post(new Runnable() {
+            @Override
+            public void run() {
+                readerView.onChildViewUpdatedRefreshCurrentPage();
+            }
+        });
     }
 
-    void hide() {
-        contentView.setVisibility(View.INVISIBLE);
-    }
-
-    View getContentView() {
-        return contentView;
+    @Override
+    public void hide() {
+        contentView.setVisibility(View.GONE);
     }
 
     @Override

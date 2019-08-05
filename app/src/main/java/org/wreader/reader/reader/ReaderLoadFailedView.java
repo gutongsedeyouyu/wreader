@@ -6,7 +6,7 @@ import android.widget.TextView;
 
 import org.wreader.reader.R;
 
-class ReaderLoadFailedView implements View.OnClickListener {
+class ReaderLoadFailedView implements ReaderChildView, View.OnClickListener {
     private final ReaderView readerView;
 
     private View contentView;
@@ -22,20 +22,24 @@ class ReaderLoadFailedView implements View.OnClickListener {
         reloadButton.setOnClickListener(this);
     }
 
-    void setColorSetting(ReaderColorSetting colorSetting) {
+    @Override
+    public View getContentView() {
+        return contentView;
+    }
+
+    @Override
+    public void setColorSetting(ReaderColorSetting colorSetting) {
         loadFailedTextView.setTextColor(colorSetting.textColorSecondary);
     }
 
-    void show(Chapter chapter) {
+    @Override
+    public void show(Chapter chapter) {
         contentView.setVisibility(View.VISIBLE);
     }
 
-    void hide() {
-        contentView.setVisibility(View.INVISIBLE);
-    }
-
-    View getContentView() {
-        return contentView;
+    @Override
+    public void hide() {
+        contentView.setVisibility(View.GONE);
     }
 
     @Override

@@ -116,10 +116,10 @@ class ReaderPaginator {
             return null;
         }
         Chapter chapter = readerView.getCachedChapter(page.chapterId);
-        if (chapter == null) {
+        if (chapter == null || chapter.status == Chapter.STATUS_LOAD_FAILED) {
             //
-            // This chapter is still loading, try to find the previous chapter from table of contents.
-            // Return last page of the previous chapter if found, null otherwise.
+            // This chapter is loading or load failed, try to find the previous chapter from table
+            // of contents. Return last page of the previous chapter if found, null otherwise.
             //
             for (int i = 1; i < readerView.getTableOfContents().size(); i++) {
                 if (page.chapterId.equals(readerView.getTableOfContents().get(i).id)) {
@@ -150,10 +150,10 @@ class ReaderPaginator {
             return null;
         }
         Chapter chapter = readerView.getCachedChapter(page.chapterId);
-        if (chapter == null) {
+        if (chapter == null || chapter.status == Chapter.STATUS_LOAD_FAILED) {
             //
-            // This chapter is still loading, try to find the next chapter from table of contents.
-            // Return first page of the next chapter if found, null otherwise.
+            // This chapter is loading or load failed, try to find the next chapter from table of
+            // contents. Return first page of the next chapter if found, null otherwise.
             //
             for (int i = 0; i < readerView.getTableOfContents().size() - 1; i++) {
                 if (page.chapterId.equals(readerView.getTableOfContents().get(i).id)) {
@@ -229,7 +229,7 @@ class ReaderPaginator {
                                  int startParagraphIndex, int startCharacterIndex,
                                  Canvas canvas, Paint paint) {
         if (canvas != null) {
-            Log.d("WReader", "ReaderPaginator.drawOrCalculate() [draw] - chapterId=" + chapterId
+            Log.v("WReader", "ReaderPaginator.drawOrCalculate() [draw] - chapterId=" + chapterId
                     + ", progress=" + progress
                     + ", pageIndex=" + pageIndex);
         } else {
@@ -388,11 +388,19 @@ class ReaderPaginator {
     private int remeasure(String text, int characterIndex, int measuredChars) {
         if (AVOID_LEADING_IF_EVEN_CHARS.contains(text.charAt(characterIndex + measuredChars))
                 && !isOccurenceTimeOdd(text, characterIndex + measuredChars)) {
-            measuredChars--;
+            if (isUtf16TrailSurrogate(text.charAt(characterIndex + measuredChars - 1))) {
+                measuredChars -= 2;
+            } else {
+                measuredChars -= 1;
+            }
         }
         for (int i = 0; i < 3; i++) {
             if (AVOID_LEADING_CHARS.contains(text.charAt(characterIndex + measuredChars))) {
-                measuredChars--;
+                if (isUtf16TrailSurrogate(text.charAt(characterIndex + measuredChars - 1))) {
+                    measuredChars -= 2;
+                } else {
+                    measuredChars -= 1;
+                }
             }
         }
         if (AVOID_BREAKING_CHARS_1.contains(text.charAt(characterIndex + measuredChars))) {
@@ -440,6 +448,14 @@ class ReaderPaginator {
         return occurrenceTime % 2 == 1;
     }
 
+    private boolean isUtf16LeadSurrogate(char c) {
+        return c >= 0xd800 && c <= 0xdbff;
+    }
+
+    private boolean isUtf16TrailSurrogate(char c) {
+        return c >= 0xdc00 && c <= 0xdfff;
+    }
+
     private void drawLine(Canvas canvas, String line, float x, float y,
                           Paint paint, boolean isLastLine, float maxTextWidth) {
         float lineMeasuredWidth = paint.measureText(line);
@@ -447,7 +463,7 @@ class ReaderPaginator {
             float extraSpacing = (maxTextWidth - lineMeasuredWidth) / line.length();
             for (int j = 0; j < line.length(); ) {
                 char c = line.charAt(j);
-                int k = Math.min((c < 0xd800 || c > 0xdbff ? j + 1 : j + 2), line.length());
+                int k = Math.min((isUtf16LeadSurrogate(c) ? j + 2 : j + 1), line.length());
                 String character = line.substring(j, k);
                 canvas.drawText(character, x, y, paint);
                 x += paint.measureText(character) + extraSpacing;

@@ -40,8 +40,8 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     private Bitmap newPageBitmap;
     private Canvas newPageCanvas;
 
-    private ReaderLoadFailedView loadFailedView;
-    private ReaderPaymentRequiredView paymentRequiredView;
+    private ReaderChildView loadFailedView;
+    private ReaderChildView paymentRequiredView;
 
     private final ReaderPageTurningAnimator pageTurningAnimator;
     private final PointF actionDownPoint = new PointF();
@@ -137,6 +137,12 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
+    void onChildViewUpdatedRefreshCurrentPage() {
+        if (currentPage.pageIndex >= 0) {
+            setCurrentPage(currentPage);
+        }
+    }
+
     Page getCurrentPage() {
         return currentPage;
     }
@@ -149,11 +155,11 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         return cachedChapters.get(chapterId);
     }
 
-    ReaderLoadFailedView getLoadFailedView() {
+    ReaderChildView getLoadFailedView() {
         return loadFailedView;
     }
 
-    ReaderPaymentRequiredView getPaymentRequiredView() {
+    ReaderChildView getPaymentRequiredView() {
         return paymentRequiredView;
     }
 
@@ -372,7 +378,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
             return false;
         }
         cachedChapters.remove(chapterId);
-        Log.v("WReader", "ReaderView.removeCachedChapterIfNotLoaded() - removed " + chapterId);
+        Log.d("WReader", "ReaderView.removeCachedChapterIfNotLoaded() - removed " + chapterId);
         removeCachedChapterIfNotLoaded(chapter.nextId);
         return true;
     }

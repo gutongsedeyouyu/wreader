@@ -471,7 +471,7 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
             if (currentChapterId.equals(readerView.getTableOfContents().get(i).id)) {
                 previousChapterButton.setEnabled(i > 0);
                 if (updateSeekBar) {
-                    int progress = progressSeekBar.getMax() * i / readerView.getTableOfContents().size();
+                    int progress = progressSeekBar.getMax() * i / (readerView.getTableOfContents().size() - 1);
                     progressSeekBar.setProgress(progress);
                 }
                 nextChapterButton.setEnabled(i < readerView.getTableOfContents().size() - 1);
