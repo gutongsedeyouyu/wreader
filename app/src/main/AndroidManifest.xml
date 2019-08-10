@@ -22,6 +22,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".main.CrashLogActivity" android:screenOrientation="portrait"/>
+
         <activity android:name=".reader.ReaderActivity" android:screenOrientation="portrait"/>
 
         <activity android:name=".tableofcontents.TableOfContentsActivity"

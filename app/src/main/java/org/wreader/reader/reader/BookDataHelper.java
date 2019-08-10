@@ -41,7 +41,7 @@ public class BookDataHelper {
             }
         });
         try {
-            FileHelper.writeCacheText(BOOKS_JSON_PATH, JSON.toJSONString(books));
+            FileHelper.writeTextToCache(BOOKS_JSON_PATH, JSON.toJSONString(books));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -110,10 +110,10 @@ public class BookDataHelper {
             try {
                 String jsonText;
                 if (!FileHelper.isCacheFileExists(BOOKS_JSON_PATH)) {
-                    jsonText = FileHelper.readAssetsText(BOOKS_JSON_PATH);
-                    FileHelper.writeCacheText(BOOKS_JSON_PATH, jsonText);
+                    jsonText = FileHelper.readTextFromAssets(BOOKS_JSON_PATH);
+                    FileHelper.writeTextToCache(BOOKS_JSON_PATH, jsonText);
                 } else {
-                    jsonText = FileHelper.readCacheText(BOOKS_JSON_PATH);
+                    jsonText = FileHelper.readTextFromCache(BOOKS_JSON_PATH);
                 }
                 return JSON.parseArray(jsonText, Book.class);
             } catch (Exception ex) {
@@ -140,7 +140,7 @@ public class BookDataHelper {
             simulateNetworkDelay();
             String bookId = params[0];
             try {
-                String jsonText = FileHelper.readAssetsText(String.format("books/%s/tableOfContents.json", bookId));
+                String jsonText = FileHelper.readTextFromAssets(String.format("books/%s/tableOfContents.json", bookId));
                 return JSON.parseArray(jsonText, Chapter.class);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -167,7 +167,7 @@ public class BookDataHelper {
             String bookId = params[0];
             String chapterId = !TextUtils.isEmpty(params[1]) ? params[1] : "1";
             try {
-                String jsonText = FileHelper.readAssetsText(String.format("books/%s/%s.json", bookId, chapterId));
+                String jsonText = FileHelper.readTextFromAssets(String.format("books/%s/%s.json", bookId, chapterId));
                 Chapter chapter = JSON.parseObject(jsonText, Chapter.class);
                 chapter.status = randomChapterStatus();
                 return chapter;

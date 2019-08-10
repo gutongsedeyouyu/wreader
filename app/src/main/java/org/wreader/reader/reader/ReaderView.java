@@ -112,7 +112,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
 
     float calculateProgressInChapter(Page page) {
         Chapter chapter = getCachedChapter(page.chapterId);
-        if (page.pageIndex < 0 || chapter.pages.size() <= 1) {
+        if (page.pageIndex < 0 || chapter == null || chapter.pages.size() <= 1) {
             return page.progress;
         } else {
             return 1.0f * page.pageIndex / (chapter.pages.size() - 1);
@@ -137,10 +137,13 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
-    void onChildViewUpdatedRefreshCurrentPage() {
-        if (currentPage.pageIndex >= 0) {
-            setCurrentPage(currentPage);
-        }
+    void onChildViewUpdated() {
+        Log.d("WReader", "ReaderView.onChildViewUpdated()");
+        paginator.drawBackground(currentPageCanvas);
+        paginator.drawPage(currentPage, currentPageCanvas);
+        paginator.drawBackground(newPageCanvas);
+        paginator.drawPage(newPage, newPageCanvas);
+        invalidate();
     }
 
     Page getCurrentPage() {
@@ -194,7 +197,6 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                                      actionDeltaX < 0.0f ? currentPageBitmap : newPageBitmap,
                                      actionDownPoint, actionMovePoint, actionDeltaX);
         }
-        updateChildViews();
     }
 
     @Override
@@ -213,6 +215,9 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
             default: {
                 break;
             }
+        }
+        if (!scroller.isFinished()) {
+            return true;
         }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
@@ -264,6 +269,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                     // Page turning canceled.
                     //
                     actionDeltaX = 0.0f;
+                    setCurrentPage(currentPage);
                     setNewPage(null);
                 }
                 break;
@@ -323,6 +329,9 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         currentPage = revisePage(page, true);
         paginator.drawBackground(currentPageCanvas);
         paginator.drawPage(currentPage, currentPageCanvas);
+        if (actionDeltaX == 0.0f) {
+            updateChildViews(true);
+        }
         invalidate();
     }
 
@@ -340,6 +349,9 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         newPage = revisePage(page, false);
         paginator.drawBackground(newPageCanvas);
         paginator.drawPage(newPage, newPageCanvas);
+        if (newPage != null) {
+            updateChildViews(false);
+        }
         invalidate();
     }
 
@@ -394,14 +406,14 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         setCurrentPage(new Page(currentPage.chapterId, calculateProgressInChapter(currentPage)));
     }
 
-    private void updateChildViews() {
+    private void updateChildViews(boolean showChildView) {
         loadFailedView.hide();
         paymentRequiredView.hide();
-        if (actionDeltaX != 0.0f || currentPage.pageIndex < 0) {
+        if (!showChildView || actionDeltaX != 0.0f || currentPage.pageIndex < 0) {
             return;
         }
         Chapter chapter = getCachedChapter(currentPage.chapterId);
-        if (currentPage.pageIndex < chapter.pages.size() - 1) {
+        if (chapter == null || currentPage.pageIndex < chapter.pages.size() - 1) {
             return;
         }
         switch (chapter.status) {

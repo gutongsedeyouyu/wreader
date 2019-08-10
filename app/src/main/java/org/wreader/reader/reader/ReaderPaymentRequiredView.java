@@ -41,7 +41,7 @@ class ReaderPaymentRequiredView implements ReaderChildView, View.OnClickListener
         contentView.post(new Runnable() {
             @Override
             public void run() {
-                readerView.onChildViewUpdatedRefreshCurrentPage();
+                readerView.onChildViewUpdated();
             }
         });
     }

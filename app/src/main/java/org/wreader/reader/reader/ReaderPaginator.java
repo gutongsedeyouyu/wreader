@@ -95,13 +95,13 @@ class ReaderPaginator {
         Log.d("WReader", "ReaderPaginator.recalculatePages() - chapter.id=" + chapter.id
                 + ", progress=" + progress);
         ArrayList<Page> pages = new ArrayList<>();
-        Page page = drawOrCalculate(chapter.id, progress, 0,
+        Page page = drawOrCalculate(chapter, progress, 0,
                                     0, 0,
                                     null, paint);
         if (chapter.status == Chapter.STATUS_LOADED) {
             while (page != null) {
                 pages.add(page);
-                page = drawOrCalculate(chapter.id, progress, page.pageIndex + 1,
+                page = drawOrCalculate(chapter, progress, page.pageIndex + 1,
                                        page.endParagraphIndex, page.endCharacterIndex,
                                        null, paint);
             }
@@ -219,41 +219,39 @@ class ReaderPaginator {
 
     void drawPage(Page page, Canvas canvas) {
         if (page != null) {
-            drawOrCalculate(page.chapterId, page.progress, page.pageIndex,
+            drawOrCalculate(readerView.getCachedChapter(page.chapterId), page.progress, page.pageIndex,
                             page.startParagraphIndex, page.startCharacterIndex,
                             canvas, paint);
         }
     }
 
-    private Page drawOrCalculate(String chapterId, float progress, int pageIndex,
+    private Page drawOrCalculate(Chapter chapter, float progress, int pageIndex,
                                  int startParagraphIndex, int startCharacterIndex,
                                  Canvas canvas, Paint paint) {
+        if (chapter == null) {
+            return drawOrCalculateLoading(canvas, paint);
+        }
         if (canvas != null) {
-            Log.v("WReader", "ReaderPaginator.drawOrCalculate() [draw] - chapterId=" + chapterId
+            Log.v("WReader", "ReaderPaginator.drawOrCalculate() [draw] - chapter.id=" + chapter.id
                     + ", progress=" + progress
                     + ", pageIndex=" + pageIndex);
         } else {
-            Log.v("WReader", "ReaderPaginator.drawOrCalculate() [calculate] - chapterId=" + chapterId
+            Log.v("WReader", "ReaderPaginator.drawOrCalculate() [calculate] - chapter.id=" + chapter.id
                     + ", progress=" + progress
                     + ", pageIndex=" + pageIndex);
         }
         if (pageIndex < 0) {
             return drawOrCalculateLoading(canvas, paint);
         }
-        Chapter chapter = readerView.getCachedChapter(chapterId);
-        if (chapter == null) {
-            throw new IllegalStateException();
-        }
         if (chapter.status == Chapter.STATUS_LOAD_FAILED) {
-            return drawOrCalculateLoadFailed(chapterId, progress,
-                                             canvas, paint);
+            return drawOrCalculateLoadFailed(chapter.id, progress, canvas, paint);
         }
         if (startParagraphIndex > chapter.paragraphs.size() - 1) {
             return null;
         }
-        return drawOrCalculateExisting(chapter, progress, pageIndex,
-                                       startParagraphIndex, startCharacterIndex,
-                                       canvas, paint);
+        return drawOrCalculateOthers(chapter, progress, pageIndex,
+                                     startParagraphIndex, startCharacterIndex,
+                                     canvas, paint);
     }
 
     private Page drawOrCalculateLoading(Canvas canvas, Paint paint) {
@@ -282,9 +280,9 @@ class ReaderPaginator {
         }
     }
 
-    private Page drawOrCalculateExisting(Chapter chapter, float progress, int pageIndex,
-                                         int startParagraphIndex, int startCharacterIndex,
-                                         Canvas canvas, Paint paint) {
+    private Page drawOrCalculateOthers(Chapter chapter, float progress, int pageIndex,
+                                       int startParagraphIndex, int startCharacterIndex,
+                                       Canvas canvas, Paint paint) {
         final float maxTextWidth = readerView.getWidth() - textMarginLeft - textMarginRight;
         final float maxY;
         if (chapter.status == Chapter.STATUS_LOADED) {
@@ -461,13 +459,13 @@ class ReaderPaginator {
         float lineMeasuredWidth = paint.measureText(line);
         if (!isLastLine && lineMeasuredWidth < maxTextWidth * 1.0f) {
             float extraSpacing = (maxTextWidth - lineMeasuredWidth) / line.length();
-            for (int j = 0; j < line.length(); ) {
-                char c = line.charAt(j);
-                int k = Math.min((isUtf16LeadSurrogate(c) ? j + 2 : j + 1), line.length());
-                String character = line.substring(j, k);
+            for (int left = 0; left < line.length(); ) {
+                char c = line.charAt(left);
+                int right = Math.min((isUtf16LeadSurrogate(c) ? left + 2 : left + 1), line.length());
+                String character = line.substring(left, right);
                 canvas.drawText(character, x, y, paint);
                 x += paint.measureText(character) + extraSpacing;
-                j = k;
+                left = right;
             }
         } else {
             canvas.drawText(line, x, y, paint);

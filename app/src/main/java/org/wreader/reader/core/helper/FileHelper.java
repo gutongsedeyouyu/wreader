@@ -14,11 +14,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class FileHelper {
-    public static String readAssetsText(String path) throws IOException {
+    public static String readTextFromAssets(String path) throws IOException {
         return readText(App.getInstance().getAssets().open(path));
     }
 
-    public static String readCacheText(String path) throws IOException {
+    public static String readTextFromCache(String path) throws IOException {
         return readText(new FileInputStream(new File(App.getInstance().getCacheDir(), path)));
     }
 
@@ -26,7 +26,7 @@ public class FileHelper {
         return new File(App.getInstance().getCacheDir(), path).exists();
     }
 
-    public static void writeCacheText(String path, String text) throws IOException {
+    public static void writeTextToCache(String path, String text) throws IOException {
         OutputStream outputStream = null;
         OutputStreamWriter writer = null;
         BufferedWriter bufferedWriter = null;
@@ -66,6 +66,9 @@ public class FileHelper {
             String line = null;
             StringBuilder stringBuilder = new StringBuilder();
             while ((line = bufferedReader.readLine()) != null) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append("\n");
+                }
                 stringBuilder.append(line);
             }
             return stringBuilder.toString();
