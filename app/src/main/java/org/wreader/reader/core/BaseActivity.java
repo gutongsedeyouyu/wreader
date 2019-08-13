@@ -34,12 +34,12 @@ public abstract class BaseActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(Color.TRANSPARENT);
             int systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
             if (isStatusBarLight()) {
                 systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             }
             window.getDecorView().setSystemUiVisibility(systemUiVisibility);
-            window.setStatusBarColor(Color.TRANSPARENT);
         } else {
             window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }

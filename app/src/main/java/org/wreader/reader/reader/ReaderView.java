@@ -40,8 +40,8 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     private Bitmap newPageBitmap;
     private Canvas newPageCanvas;
 
-    private ReaderChildView loadFailedView;
-    private ReaderChildView paymentRequiredView;
+    private ReaderLoadFailedView loadFailedView;
+    private ReaderPaymentRequiredView paymentRequiredView;
 
     private final ReaderPageTurningAnimator pageTurningAnimator;
     private final PointF actionDownPoint = new PointF();
@@ -111,6 +111,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     }
 
     float calculateProgressInChapter(Page page) {
+        Log.d("WReader", "ReaderView.calculateProgressInChapter()");
         Chapter chapter = getCachedChapter(page.chapterId);
         if (page.pageIndex < 0 || chapter == null || chapter.pages.size() <= 1) {
             return page.progress;
@@ -132,6 +133,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     }
 
     void reloadCurrentChapterIfNotLoaded() {
+        Log.d("WReader", "ReaderView.reloadCurrentChapterIfNotLoaded()");
         if (removeCachedChapterIfNotLoaded(currentPage.chapterId)) {
             setCurrentPage(new Page(currentPage.chapterId, currentPage.progress));
         }
@@ -158,16 +160,16 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         return cachedChapters.get(chapterId);
     }
 
+    ReaderActivity getReaderActivity() {
+        return (ReaderActivity) getContext();
+    }
+
     ReaderChildView getLoadFailedView() {
         return loadFailedView;
     }
 
     ReaderChildView getPaymentRequiredView() {
         return paymentRequiredView;
-    }
-
-    ReaderActivity getReaderActivity() {
-        return (ReaderActivity) getContext();
     }
 
     @Override
@@ -384,32 +386,10 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
-    private boolean removeCachedChapterIfNotLoaded(String chapterId) {
-        Chapter chapter = getCachedChapter(chapterId);
-        if (chapter == null || chapter.status == Chapter.STATUS_LOADED) {
-            return false;
-        }
-        cachedChapters.remove(chapterId);
-        Log.d("WReader", "ReaderView.removeCachedChapterIfNotLoaded() - removed " + chapterId);
-        removeCachedChapterIfNotLoaded(chapter.nextId);
-        return true;
-    }
-
-    private void onSizeChangedRefreshCurrentPage() {
-        if (currentPage == null) {
-            return;
-        }
-        if (currentPage.pageIndex < 0) {
-            setCurrentPage(currentPage);
-            return;
-        }
-        setCurrentPage(new Page(currentPage.chapterId, calculateProgressInChapter(currentPage)));
-    }
-
-    private void updateChildViews(boolean showChildView) {
+    private void updateChildViews(boolean isForCurrentPage) {
         loadFailedView.hide();
         paymentRequiredView.hide();
-        if (!showChildView || actionDeltaX != 0.0f || currentPage.pageIndex < 0) {
+        if (!isForCurrentPage || actionDeltaX != 0.0f || currentPage.pageIndex < 0) {
             return;
         }
         Chapter chapter = getCachedChapter(currentPage.chapterId);
@@ -432,6 +412,28 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                 break;
             }
         }
+    }
+
+    private boolean removeCachedChapterIfNotLoaded(String chapterId) {
+        Chapter chapter = getCachedChapter(chapterId);
+        if (chapter == null || chapter.status == Chapter.STATUS_LOADED) {
+            return false;
+        }
+        cachedChapters.remove(chapterId);
+        Log.d("WReader", "ReaderView.removeCachedChapterIfNotLoaded() - removed " + chapterId);
+        removeCachedChapterIfNotLoaded(chapter.nextId);
+        return true;
+    }
+
+    private void onSizeChangedRefreshCurrentPage() {
+        if (currentPage == null) {
+            return;
+        }
+        if (currentPage.pageIndex < 0) {
+            setCurrentPage(currentPage);
+            return;
+        }
+        setCurrentPage(new Page(currentPage.chapterId, calculateProgressInChapter(currentPage)));
     }
 
     private void jumpToPreviousPageAnimated() {

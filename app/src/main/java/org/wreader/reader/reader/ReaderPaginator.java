@@ -41,7 +41,7 @@ class ReaderPaginator {
         for (char c : "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'’&1234567890".toCharArray()) {
             AVOID_BREAKING_CHARS_1.add(c);
         }
-        for (char c : "1234567890+-.,$¥".toCharArray()) {
+        for (char c : "+-±$¥1234567890,.%‰°′″".toCharArray()) {
             AVOID_BREAKING_CHARS_2.add(c);
         }
         for (char c : "‘“<《(（[【{「".toCharArray()) {
