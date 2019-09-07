@@ -78,6 +78,9 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
     private View textSizeLargerButton;
     private CompoundButton[] colorSettingRadioButtons;
 
+    private View ttsMenuView;
+    private View ttsMenuBottomBar;
+
     @Override
     protected boolean isFullScreen() {
         return true;
@@ -128,6 +131,7 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
         menuBottomBar.findViewById(R.id.table_of_contents_button).setOnClickListener(this);
         progressCheckBox = menuBottomBar.findViewById(R.id.progress_check_box);
         progressCheckBox.setOnCheckedChangeListener(this);
+        menuBottomBar.findViewById(R.id.tts_button).setOnClickListener(this);
         settingsCheckBox = menuBottomBar.findViewById(R.id.settings_check_box);
         settingsCheckBox.setOnCheckedChangeListener(this);
         //
@@ -168,10 +172,18 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
         colorSettingRadioButtons = new CompoundButton[] {
                 colorSettingRadioButton0, colorSettingRadioButton1, colorSettingRadioButton2,
                 colorSettingRadioButton3, colorSettingRadioButton4};
+        //
+        // TTS menu
+        //
+        ttsMenuView = findViewById(R.id.tts_menu_view);
+        ttsMenuView.setOnClickListener(this);
+        ttsMenuBottomBar = findViewById(R.id.tts_menu_bottom_bar);
+        findViewById(R.id.tts_stop_button).setOnClickListener(this);
         menuView.post(new Runnable() {
             @Override
             public void run() {
                 hideMenuView(false);
+                hideTtsMenuView(false);
             }
         });
     }
@@ -189,9 +201,11 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
     protected void onPause() {
         super.onPause();
         Page currentPage = readerView.getCurrentPage();
-        BookDataHelper.setReadProgress(bookId,
-                                       currentPage.chapterId,
-                                       readerView.calculateProgressInChapter(currentPage));
+        if (currentPage != null) {
+            BookDataHelper.setReadProgress(bookId,
+                                           currentPage.chapterId,
+                                           readerView.calculateProgressInChapter(currentPage));
+        }
     }
 
     @Override
@@ -254,6 +268,22 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
                     setTextSizeSettingIndex(textSizeSettingIndex + 1);
                 }
                 updateSettingsBar();
+                break;
+            }
+            case R.id.tts_button: {
+                ReaderTtsHelper ttsHelper = readerView.getTtsHelper();
+                ttsHelper.start(ttsHelper.getFirstSentenceInPage(readerView.getCurrentPage()));
+                hideMenuView(true);
+                break;
+            }
+            case R.id.tts_menu_view: {
+                readerView.getTtsHelper().resume();
+                hideTtsMenuView(true);
+                break;
+            }
+            case R.id.tts_stop_button: {
+                readerView.getTtsHelper().stop();
+                hideTtsMenuView(true);
                 break;
             }
             default: {
@@ -486,6 +516,35 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
         textSizeLargerButton.setEnabled(textSizeSettingIndex < TEXT_SIZE_SETTINGS.length - 1);
         colorSettingRadioButtons[colorSettingIndex].setChecked(true);
         pageTurningSettingRadioButtons[pageTurningSettingIndex].setChecked(true);
+    }
+
+    private void hideTtsMenuView(boolean animated) {
+        if (animated) {
+            ttsMenuBottomBar.animate()
+                    .translationY(ttsMenuBottomBar.getHeight())
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            ttsMenuBottomBar.setVisibility(View.GONE);
+                        }
+                    });
+            ttsMenuView.setVisibility(View.GONE);
+        } else {
+            ttsMenuBottomBar.setTranslationY(menuBottomBar.getHeight());
+            ttsMenuBottomBar.setVisibility(View.GONE);
+            ttsMenuView.setVisibility(View.GONE);
+        }
+    }
+
+    void showTtsMenuView(boolean animated) {
+        readerView.getTtsHelper().pause();
+        if (animated) {
+            ttsMenuBottomBar.animate().translationY(0.0f).setListener(null);
+        } else {
+            ttsMenuBottomBar.setTranslationY(0.0f);
+        }
+        ttsMenuView.setVisibility(View.VISIBLE);
+        ttsMenuBottomBar.setVisibility(View.VISIBLE);
     }
 
     //

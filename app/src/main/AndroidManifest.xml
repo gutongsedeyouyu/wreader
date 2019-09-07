@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.wreader.reader">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:name=".core.App"
         android:icon="@drawable/app_icon"
@@ -27,7 +29,6 @@
         <activity android:name=".reader.ReaderActivity" android:screenOrientation="portrait"/>
 
         <activity android:name=".tableofcontents.TableOfContentsActivity"
-            android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
     </application>

@@ -19,6 +19,11 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import static org.wreader.reader.core.helper.TextHelper.isOccurenceTimeOdd;
+import static org.wreader.reader.core.helper.TextHelper.isSpace;
+import static org.wreader.reader.core.helper.TextHelper.isUtf16LeadSurrogate;
+import static org.wreader.reader.core.helper.TextHelper.isUtf16TrailSurrogate;
+
 class ReaderPaginator {
     private static final float DENSITY = Resources.getSystem().getDisplayMetrics().density;
 
@@ -32,22 +37,22 @@ class ReaderPaginator {
     private static final Set<Character> AVOID_TRAILING_IF_ODD_CHARS = new HashSet<>();
 
     static {
-        for (char c : "'\"`".toCharArray()) {
+        for (char c : "\"`".toCharArray()) {
             AVOID_LEADING_IF_EVEN_CHARS.add(c);
         }
-        for (char c : ",，:：;；、.。?？!！’”>》)）]】}」".toCharArray()) {
+        for (char c : ",，:：;；、.．。?？!！’”>》)）]】}」』".toCharArray()) {
             AVOID_LEADING_CHARS.add(c);
         }
         for (char c : "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'’&1234567890".toCharArray()) {
             AVOID_BREAKING_CHARS_1.add(c);
         }
-        for (char c : "+-±$¥1234567890,.%‰°′″".toCharArray()) {
+        for (char c : "+-±$¥€1234567890,.%‰‱°CF′″".toCharArray()) {
             AVOID_BREAKING_CHARS_2.add(c);
         }
-        for (char c : "‘“<《(（[【{「".toCharArray()) {
+        for (char c : "‘“<《(（[【{「『".toCharArray()) {
             AVOID_TRAILING_CHARS.add(c);
         }
-        for (char c : "'\"`".toCharArray()) {
+        for (char c : "\"`".toCharArray()) {
             AVOID_TRAILING_IF_ODD_CHARS.add(c);
         }
     }
@@ -71,6 +76,7 @@ class ReaderPaginator {
     private float textSizeLarge;
 
     private int backgroundColor;
+    private int speakingBackgroundColor;
     private int textColorPrimary;
     private int textColorSecondary;
 
@@ -87,6 +93,7 @@ class ReaderPaginator {
 
     void setColorSetting(ReaderColorSetting colorSetting) {
         backgroundColor = colorSetting.backgroundColor;
+        speakingBackgroundColor = colorSetting.speakingBackgroundColor;
         textColorPrimary = colorSetting.textColorPrimary;
         textColorSecondary = colorSetting.textColorSecondary;
     }
@@ -220,13 +227,13 @@ class ReaderPaginator {
     void drawPage(Page page, Canvas canvas) {
         if (page != null) {
             drawOrCalculate(readerView.getCachedChapter(page.chapterId), page.progress, page.pageIndex,
-                            page.startParagraphIndex, page.startCharacterIndex,
+                            page.beginParagraphIndex, page.beginCharacterIndex,
                             canvas, paint);
         }
     }
 
     private Page drawOrCalculate(Chapter chapter, float progress, int pageIndex,
-                                 int startParagraphIndex, int startCharacterIndex,
+                                 int beginParagraphIndex, int beginCharacterIndex,
                                  Canvas canvas, Paint paint) {
         if (chapter == null) {
             return drawOrCalculateLoading(canvas, paint);
@@ -246,11 +253,12 @@ class ReaderPaginator {
         if (chapter.status == Chapter.STATUS_LOAD_FAILED) {
             return drawOrCalculateLoadFailed(chapter.id, progress, canvas, paint);
         }
-        if (startParagraphIndex > chapter.paragraphs.size() - 1) {
+        if (beginParagraphIndex == chapter.paragraphs.size() - 1
+                && beginCharacterIndex == chapter.paragraphs.get(chapter.paragraphs.size() - 1).length()) {
             return null;
         }
         return drawOrCalculateOthers(chapter, progress, pageIndex,
-                                     startParagraphIndex, startCharacterIndex,
+                                     beginParagraphIndex, beginCharacterIndex,
                                      canvas, paint);
     }
 
@@ -281,7 +289,7 @@ class ReaderPaginator {
     }
 
     private Page drawOrCalculateOthers(Chapter chapter, float progress, int pageIndex,
-                                       int startParagraphIndex, int startCharacterIndex,
+                                       int beginParagraphIndex, int beginCharacterIndex,
                                        Canvas canvas, Paint paint) {
         final float maxTextWidth = readerView.getWidth() - textMarginLeft - textMarginRight;
         final float maxY;
@@ -309,7 +317,7 @@ class ReaderPaginator {
         //
         // Large title is only showed on the first page
         //
-        if (startParagraphIndex == 0 && startCharacterIndex == 0) {
+        if (beginParagraphIndex == 0 && beginCharacterIndex == 0) {
             y += titleLargeMarginTop;
             paint.setTextSize(textSizeLarge);
             paint.setColor(textColorPrimary);
@@ -326,6 +334,12 @@ class ReaderPaginator {
                                                         characterIndex, characterIndex + measuredChars);
                 x = textMarginLeft + (maxTextWidth - measuredWidth) / 2;
                 if (canvas != null) {
+                    Sentence speakingSentence = readerView.getSpeakingSentence();
+                    if (speakingSentence != null
+                            && chapter.id.equals(speakingSentence.chapterId)
+                            && speakingSentence.isTitle) {
+                        drawSpeakingBackground(canvas, x, y, measuredWidth, lineHeight, paint);
+                    }
                     canvas.drawText(chapter.title, characterIndex, characterIndex + measuredChars,
                                     x, y, paint);
                 }
@@ -340,9 +354,9 @@ class ReaderPaginator {
         paint.setTextSize(textSizeDefault);
         paint.setColor(textColorPrimary);
         lineHeight = calculateLineHeight(paint);
-        for (int i = startParagraphIndex; i < chapter.paragraphs.size(); i++) {
+        for (int i = beginParagraphIndex; i < chapter.paragraphs.size(); i++) {
             String paragraph = chapter.paragraphs.get(i);
-            int characterIndex = (i == startParagraphIndex) ? startCharacterIndex : 0;
+            int characterIndex = (i == beginParagraphIndex) ? beginCharacterIndex : 0;
             y += lineHeight;
             while (characterIndex < paragraph.length()) {
                 if (y >= maxY) {
@@ -351,7 +365,7 @@ class ReaderPaginator {
                         return null;
                     } else {
                         return new Page(chapter.id, progress, pageIndex,
-                                        startParagraphIndex, startCharacterIndex, i, characterIndex);
+                                        beginParagraphIndex, beginCharacterIndex, i, characterIndex);
                     }
                 }
                 measuredChars = paint.breakText(paragraph, characterIndex, paragraph.length(),
@@ -360,9 +374,10 @@ class ReaderPaginator {
                     measuredChars = remeasure(paragraph, characterIndex, measuredChars);
                 }
                 if (canvas != null) {
-                    String line = paragraph.substring(characterIndex, characterIndex + measuredChars);
-                    drawLine(canvas, line, x, y,
-                             paint, characterIndex + measuredChars >= paragraph.length(), maxTextWidth);
+                    drawLine(canvas, paragraph,
+                             chapter.id, i, characterIndex, characterIndex + measuredChars,
+                             x, y, lineHeight, paint,
+                             characterIndex + measuredChars >= paragraph.length(), maxTextWidth);
                 }
                 characterIndex += measuredChars;
                 y += paragraphLineSpacing + lineHeight;
@@ -373,8 +388,10 @@ class ReaderPaginator {
             drawBottomView(chapter, pageIndex, canvas, paint);
             return null;
         } else {
+            int endParagraphIndex = chapter.paragraphs.size() - 1;
+            int endCharacterIndex = chapter.paragraphs.get(chapter.paragraphs.size() - 1).length();
             return new Page(chapter.id, progress, pageIndex,
-                            startParagraphIndex, startCharacterIndex, chapter.paragraphs.size(), 0);
+                            beginParagraphIndex, beginCharacterIndex, endParagraphIndex, endCharacterIndex);
         }
     }
 
@@ -426,8 +443,7 @@ class ReaderPaginator {
         }
         for (int j = 0; j < 2; j++) {
             if (characterIndex + measuredChars < text.length()) {
-                char c = text.charAt(characterIndex + measuredChars);
-                if (c == ' ' || c == '\u3000') {
+                if (isSpace(text.charAt(characterIndex + measuredChars))) {
                     measuredChars++;
                 }
             }
@@ -435,40 +451,55 @@ class ReaderPaginator {
         return measuredChars;
     }
 
-    private boolean isOccurenceTimeOdd(String text, int index) {
-        char c = text.charAt(index);
-        int occurrenceTime = 0;
-        for (int i = 0; i <= index; i++) {
-            if (text.charAt(i) == c) {
-                occurrenceTime++;
+    private void drawSpeakingBackground(Canvas canvas, float x, float y, float width, float height, Paint paint) {
+        int colorToRestore = paint.getColor();
+        paint.setColor(speakingBackgroundColor);
+        canvas.drawRect(x, y - height * 0.9f, (float) Math.ceil(x + width), y + height * 0.1f, paint);
+        paint.setColor(colorToRestore);
+    }
+
+    private void drawLine(Canvas canvas, String paragraph,
+                          String chapterId, int paragraphIndex, int beginCharacterIndex, int endCharacterIndex,
+                          float x, float y, float lineHeight, Paint paint,
+                          boolean isLastLine, float maxTextWidth) {
+        Sentence speakingSentence = readerView.getSpeakingSentence();
+        String line = paragraph.substring(beginCharacterIndex, endCharacterIndex);
+        float lineMeasuredWidth = paint.measureText(line);
+        int leadingSpacesCount = 0;
+        if (beginCharacterIndex == 0) {
+            for (int i = 0; i < Math.min(2, line.length() - 1); i++) {
+                if (isSpace(paragraph.charAt(i))) {
+                    leadingSpacesCount++;
+                }
             }
         }
-        return occurrenceTime % 2 == 1;
-    }
-
-    private boolean isUtf16LeadSurrogate(char c) {
-        return c >= 0xd800 && c <= 0xdbff;
-    }
-
-    private boolean isUtf16TrailSurrogate(char c) {
-        return c >= 0xdc00 && c <= 0xdfff;
-    }
-
-    private void drawLine(Canvas canvas, String line, float x, float y,
-                          Paint paint, boolean isLastLine, float maxTextWidth) {
-        float lineMeasuredWidth = paint.measureText(line);
-        if (!isLastLine && lineMeasuredWidth < maxTextWidth * 1.0f) {
-            float extraSpacing = (maxTextWidth - lineMeasuredWidth) / line.length();
-            for (int left = 0; left < line.length(); ) {
-                char c = line.charAt(left);
-                int right = Math.min((isUtf16LeadSurrogate(c) ? left + 2 : left + 1), line.length());
-                String character = line.substring(left, right);
-                canvas.drawText(character, x, y, paint);
-                x += paint.measureText(character) + extraSpacing;
-                left = right;
-            }
+        float extraSpacing;
+        if (!isLastLine) {
+            extraSpacing = (maxTextWidth - lineMeasuredWidth) / (line.length() - leadingSpacesCount);
         } else {
-            canvas.drawText(line, x, y, paint);
+            extraSpacing = 0;
+        }
+        for (int left = beginCharacterIndex; left < endCharacterIndex; ) {
+            char c = paragraph.charAt(left);
+            int right = Math.min((isUtf16LeadSurrogate(c) ? left + 2 : left + 1), endCharacterIndex);
+            String character = paragraph.substring(left, right);
+            float characterWidth;
+            if (left < leadingSpacesCount) {
+                characterWidth = paint.measureText(character);
+            } else {
+                characterWidth = paint.measureText(character) + extraSpacing;
+            }
+            if (speakingSentence != null
+                    && chapterId.equals(speakingSentence.chapterId)
+                    && !speakingSentence.isTitle
+                    && speakingSentence.paragraphIndex == paragraphIndex
+                    && left >= speakingSentence.beginCharacterIndex
+                    && left < speakingSentence.endCharacterIndex) {
+                drawSpeakingBackground(canvas, x, y, characterWidth, lineHeight, paint);
+            }
+            canvas.drawText(character, x, y, paint);
+            x += characterWidth;
+            left = right;
         }
     }
 

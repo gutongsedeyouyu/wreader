@@ -11,6 +11,8 @@ class ReaderColorSetting {
 
     final int dividerColor;
 
+    final int speakingBackgroundColor;
+
     ReaderColorSetting(int backgroundColor, boolean isLightBackground,
                        int textColorPrimary, int textColorSecondary,
                        int dividerColor) {
@@ -19,5 +21,6 @@ class ReaderColorSetting {
         this.textColorPrimary = textColorPrimary;
         this.textColorSecondary = textColorSecondary;
         this.dividerColor = dividerColor;
+        this.speakingBackgroundColor = 0xffeeee11;
     }
 }

@@ -21,11 +21,16 @@ public class BookDataHelper {
     private static final String BOOKS_JSON_PATH = "books/books.json";
 
     private static final int CHAPTER_STATUS_CHOICES[] = new int[] {
-            Chapter.STATUS_LOADED,
-            Chapter.STATUS_LOADED,
-            Chapter.STATUS_LOADED,
-            Chapter.STATUS_LOAD_FAILED,
-            Chapter.STATUS_PAYMENT_REQUIRED
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOADED, Chapter.STATUS_LOADED,
+            Chapter.STATUS_LOAD_FAILED, Chapter.STATUS_PAYMENT_REQUIRED
     };
     private static final Random RANDOM = new Random();
 

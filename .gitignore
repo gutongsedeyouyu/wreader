@@ -7,3 +7,4 @@
 /captures
 .externalNativeBuild
 /app/src/main/assets/books
+/app/src/main/assets/tts_key.txt

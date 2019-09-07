@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class ReaderView extends FrameLayout implements View.OnClickListener {
     private static final float PAGE_TURNING_THRESHOLD = 10 * Resources.getSystem().getDisplayMetrics().density;
+    private static final float SPEAKING_ACTION_THRESHOLD = 20 * Resources.getSystem().getDisplayMetrics().density;
     private static final long LOAD_CHAPTER_TIMEOUT = 60L * 1000;
 
     private String bookId;
@@ -50,11 +51,17 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     private int actionDirectionX;
     private final Scroller scroller;
 
+    private final ReaderTtsHelper ttsHelper;
+    private Sentence speakingSentence;
+    private final PointF speakingActionPoint = new PointF();
+    private boolean speakingActionMoving;
+
     public ReaderView(Context context, AttributeSet attributes) {
         super(context, attributes);
         paginator = new ReaderPaginator(this);
         pageTurningAnimator = ReaderPageTurningAnimator.getInstance();
         scroller = new Scroller(context);
+        ttsHelper = new ReaderTtsHelper(this);
         setOnClickListener(this);
         setWillNotDraw(false);
         //
@@ -160,6 +167,14 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         return cachedChapters.get(chapterId);
     }
 
+    ReaderPaginator getPaginator() {
+        return paginator;
+    }
+
+    ReaderTtsHelper getTtsHelper() {
+        return ttsHelper;
+    }
+
     ReaderActivity getReaderActivity() {
         return (ReaderActivity) getContext();
     }
@@ -170,6 +185,37 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
 
     ReaderChildView getPaymentRequiredView() {
         return paymentRequiredView;
+    }
+
+    Sentence getSpeakingSentence() {
+        return speakingSentence;
+    }
+
+    void setSpeakingSentence(Sentence speakingSentence) {
+        if (speakingSentence == null) {
+            this.speakingSentence = null;
+            setCurrentPage(currentPage);
+            return;
+        }
+        Chapter chapter = getCachedChapter(speakingSentence.chapterId);
+        if (chapter == null || chapter.status != Chapter.STATUS_LOADED) {
+            this.speakingSentence = null;
+            setCurrentPage(currentPage);
+            return;
+        }
+        if (currentPage.containsSentence(speakingSentence)) {
+            this.speakingSentence = speakingSentence;
+            setCurrentPage(currentPage);
+            return;
+        }
+        for (int i = 0; i < chapter.pages.size(); i++) {
+            Page page = chapter.pages.get(i);
+            if (page.containsSentence(speakingSentence)) {
+                this.speakingSentence = speakingSentence;
+                setCurrentPage(page);
+                break;
+            }
+        }
     }
 
     @Override
@@ -218,6 +264,51 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                 break;
             }
         }
+        if (speakingSentence != null) {
+            return onTouchEventSpeaking(event);
+        } else {
+            return onTouchEventReading(event);
+        }
+    }
+
+    private boolean onTouchEventSpeaking(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                speakingActionPoint.x = event.getX();
+                speakingActionPoint.y = event.getY();
+                speakingActionMoving = false;
+                ttsHelper.pause();
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (event.getY() - speakingActionPoint.y < -SPEAKING_ACTION_THRESHOLD) {
+                    setSpeakingSentence(ttsHelper.getPreviousSentence(speakingSentence));
+                    speakingActionPoint.x = event.getX();
+                    speakingActionPoint.y = event.getY();
+                    speakingActionMoving = true;
+                }
+                if (event.getY() - speakingActionPoint.y > SPEAKING_ACTION_THRESHOLD) {
+                    setSpeakingSentence(ttsHelper.getNextSentence(speakingSentence));
+                    speakingActionPoint.x = event.getX();
+                    speakingActionPoint.y = event.getY();
+                    speakingActionMoving = true;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (speakingActionMoving) {
+                    ttsHelper.start(speakingSentence);
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return speakingActionMoving || super.onTouchEvent(event);
+    }
+
+    private boolean onTouchEventReading(MotionEvent event) {
         if (!scroller.isFinished()) {
             return true;
         }
@@ -287,6 +378,10 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.reader_view: {
+                if (speakingSentence != null) {
+                    getReaderActivity().showTtsMenuView(true);
+                    break;
+                }
                 if (actionDownPoint.x < getWidth() * 0.2f) {
                     jumpToPreviousPageAnimated();
                 } else if (actionDownPoint.x > getWidth() * 0.8f) {
