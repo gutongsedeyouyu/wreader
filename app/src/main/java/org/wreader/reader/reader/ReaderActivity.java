@@ -54,6 +54,8 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
     private static final String PREFERENCE_KEY_PAGE_TURNING_SETTING = "READER_PAGE_TURNING_STYLE";
     private int pageTurningSettingIndex;
 
+    private boolean onResumeFirstTime = true;
+
     private String bookId;
 
     private ReaderView readerView;
@@ -205,6 +207,16 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
             BookDataHelper.setReadProgress(bookId,
                                            currentPage.chapterId,
                                            readerView.calculateProgressInChapter(currentPage));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (onResumeFirstTime) {
+            onResumeFirstTime = false;
+        } else {
+            readerView.refreshCurrentPage();
         }
     }
 

@@ -117,6 +117,11 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         setCurrentPage(new Page(chapterId, 0.0f));
     }
 
+    void refreshCurrentPage() {
+        Log.d("WReader", "ReaderView.refreshCurrentPage()");
+        setCurrentPage(currentPage);
+    }
+
     float calculateProgressInChapter(Page page) {
         Log.d("WReader", "ReaderView.calculateProgressInChapter()");
         Chapter chapter = getCachedChapter(page.chapterId);

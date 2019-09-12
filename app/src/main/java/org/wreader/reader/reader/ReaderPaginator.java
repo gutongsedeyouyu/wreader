@@ -257,9 +257,9 @@ class ReaderPaginator {
                 && beginCharacterIndex == chapter.paragraphs.get(chapter.paragraphs.size() - 1).length()) {
             return null;
         }
-        return drawOrCalculateOthers(chapter, progress, pageIndex,
-                                     beginParagraphIndex, beginCharacterIndex,
-                                     canvas, paint);
+        return drawOrCalculateDefault(chapter, progress, pageIndex,
+                                      beginParagraphIndex, beginCharacterIndex,
+                                      canvas, paint);
     }
 
     private Page drawOrCalculateLoading(Canvas canvas, Paint paint) {
@@ -288,9 +288,9 @@ class ReaderPaginator {
         }
     }
 
-    private Page drawOrCalculateOthers(Chapter chapter, float progress, int pageIndex,
-                                       int beginParagraphIndex, int beginCharacterIndex,
-                                       Canvas canvas, Paint paint) {
+    private Page drawOrCalculateDefault(Chapter chapter, float progress, int pageIndex,
+                                        int beginParagraphIndex, int beginCharacterIndex,
+                                        Canvas canvas, Paint paint) {
         final float maxTextWidth = readerView.getWidth() - textMarginLeft - textMarginRight;
         final float maxY;
         if (chapter.status == Chapter.STATUS_LOADED) {
