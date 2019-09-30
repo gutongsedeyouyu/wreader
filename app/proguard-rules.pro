@@ -20,5 +20,9 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.iflytek.**{*;}
+-keepclassmembers class org.wreader.reader.core.helper.Router {
+    public static <methods>;
+}
+
+-keep class com.iflytek.** {*;}
 -keepattributes Signature

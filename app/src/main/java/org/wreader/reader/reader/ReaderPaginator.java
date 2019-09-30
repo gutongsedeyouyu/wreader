@@ -410,12 +410,13 @@ class ReaderPaginator {
             }
         }
         for (int i = 0; i < 3; i++) {
-            if (AVOID_LEADING_CHARS.contains(text.charAt(characterIndex + measuredChars))) {
-                if (isUtf16TrailSurrogate(text.charAt(characterIndex + measuredChars - 1))) {
-                    measuredChars -= 2;
-                } else {
-                    measuredChars -= 1;
-                }
+            if (!AVOID_LEADING_CHARS.contains(text.charAt(characterIndex + measuredChars))) {
+                break;
+            }
+            if (isUtf16TrailSurrogate(text.charAt(characterIndex + measuredChars - 1))) {
+                measuredChars -= 2;
+            } else {
+                measuredChars -= 1;
             }
         }
         if (AVOID_BREAKING_CHARS_1.contains(text.charAt(characterIndex + measuredChars))) {
@@ -442,10 +443,11 @@ class ReaderPaginator {
             measuredChars--;
         }
         for (int j = 0; j < 2; j++) {
-            if (characterIndex + measuredChars < text.length()) {
-                if (isSpace(text.charAt(characterIndex + measuredChars))) {
-                    measuredChars++;
-                }
+            if (characterIndex + measuredChars >= text.length()) {
+                break;
+            }
+            if (isSpace(text.charAt(characterIndex + measuredChars))) {
+                measuredChars++;
             }
         }
         return measuredChars;
