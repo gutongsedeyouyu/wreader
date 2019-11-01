@@ -39,7 +39,7 @@ public class Router {
             for (String q : rawQuery.split("&")) {
                 String s[] = q.split("=");
                 try {
-                    query.put(s[0], URLDecoder.decode(s[1], "utf-8"));
+                    query.put(s[0], (s.length > 1) ? URLDecoder.decode(s[1], "utf-8") : "");
                 } catch (UnsupportedEncodingException ex) {
                     ex.printStackTrace();
                 }
@@ -48,20 +48,24 @@ public class Router {
         return query;
     }
 
+    @Since(version = "1.0.0")
     private static void unsupported(Context context) {
         toast(context, context.getString(R.string.unsupported_action));
     }
 
+    @Since(version = "1.0.0")
     public static void toast(Context context, String text) {
         if (!TextUtils.isEmpty(text)) {
             Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
         }
     }
 
+    @Since(version = "1.0.0")
     public static void toast(Context context, Map<String, String> query) {
         toast(context, query.get("text"));
     }
 
+    @Since(version = "1.0.0")
     public static void readBook(Context context, Map<String, String> query) {
         Intent intent = new Intent(context, ReaderActivity.class);
         intent.putExtra(ReaderActivity.PARAM_KEY_BOOK_ID, query.get("id"));

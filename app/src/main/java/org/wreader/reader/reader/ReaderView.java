@@ -58,7 +58,7 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
 
     public ReaderView(Context context, AttributeSet attributes) {
         super(context, attributes);
-        paginator = new ReaderPaginator(this);
+        paginator = new ReaderPaginator(this, true, true);
         pageTurningAnimator = ReaderPageTurningAnimator.getInstance();
         scroller = new Scroller(context);
         ttsHelper = new ReaderTtsHelper(this);

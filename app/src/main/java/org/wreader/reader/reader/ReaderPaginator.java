@@ -58,6 +58,8 @@ class ReaderPaginator {
     }
 
     private final ReaderView readerView;
+    private final boolean remeasureLine;
+    private final boolean justifyLineInParagraph;
     private final Paint paint;
 
     private float textMarginTop = 0 * DENSITY;
@@ -80,8 +82,10 @@ class ReaderPaginator {
     private int textColorPrimary;
     private int textColorSecondary;
 
-    ReaderPaginator(ReaderView readerView) {
+    ReaderPaginator(ReaderView readerView, boolean remeasureLine, boolean justifyLineInParagraph) {
         this.readerView = readerView;
+        this.remeasureLine = remeasureLine;
+        this.justifyLineInParagraph = justifyLineInParagraph;
         this.paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     }
 
@@ -401,6 +405,9 @@ class ReaderPaginator {
     }
 
     private int remeasure(String text, int characterIndex, int measuredChars) {
+        if (!remeasureLine) {
+            return measuredChars;
+        }
         if (AVOID_LEADING_IF_EVEN_CHARS.contains(text.charAt(characterIndex + measuredChars))
                 && !isOccurenceTimeOdd(text, characterIndex + measuredChars)) {
             if (isUtf16TrailSurrogate(text.charAt(characterIndex + measuredChars - 1))) {
@@ -465,43 +472,71 @@ class ReaderPaginator {
                           float x, float y, float lineHeight, Paint paint,
                           boolean isLastLine, float maxTextWidth) {
         Sentence speakingSentence = readerView.getSpeakingSentence();
-        String line = paragraph.substring(beginCharacterIndex, endCharacterIndex);
-        float lineMeasuredWidth = paint.measureText(line);
-        int leadingSpacesCount = 0;
-        if (beginCharacterIndex == 0) {
-            for (int i = 0; i < Math.min(2, line.length() - 1); i++) {
-                if (isSpace(paragraph.charAt(i))) {
-                    leadingSpacesCount++;
+        if (!justifyLineInParagraph) {
+            if (speakingSentence == null
+                    || !chapterId.equals(speakingSentence.chapterId)
+                    || speakingSentence.isTitle
+                    || speakingSentence.paragraphIndex != paragraphIndex
+                    || speakingSentence.beginCharacterIndex >= endCharacterIndex
+                    || speakingSentence.endCharacterIndex <= beginCharacterIndex) {
+                String line = paragraph.substring(beginCharacterIndex, endCharacterIndex);
+                canvas.drawText(line, x, y, paint);
+            } else {
+                if (speakingSentence.beginCharacterIndex > beginCharacterIndex) {
+                    String part1 = paragraph.substring(beginCharacterIndex, speakingSentence.beginCharacterIndex);
+                    canvas.drawText(part1, x, y, paint);
+                    x += paint.measureText(part1);
+                }
+                String part2 = paragraph.substring(
+                        Math.max(beginCharacterIndex, speakingSentence.beginCharacterIndex),
+                        Math.min(endCharacterIndex, speakingSentence.endCharacterIndex));
+                drawSpeakingBackground(canvas, x, y, paint.measureText(part2), lineHeight, paint);
+                canvas.drawText(part2, x, y, paint);
+                x += paint.measureText(part2);
+                if (speakingSentence.endCharacterIndex < endCharacterIndex) {
+                    String part3 = paragraph.substring(speakingSentence.endCharacterIndex, endCharacterIndex);
+                    canvas.drawText(part3, x, y, paint);
                 }
             }
-        }
-        float extraSpacing;
-        if (!isLastLine) {
-            extraSpacing = (maxTextWidth - lineMeasuredWidth) / (line.length() - leadingSpacesCount);
         } else {
-            extraSpacing = 0;
-        }
-        for (int left = beginCharacterIndex; left < endCharacterIndex; ) {
-            char c = paragraph.charAt(left);
-            int right = Math.min((isUtf16LeadSurrogate(c) ? left + 2 : left + 1), endCharacterIndex);
-            String character = paragraph.substring(left, right);
-            float characterWidth;
-            if (left < leadingSpacesCount) {
-                characterWidth = paint.measureText(character);
+            String line = paragraph.substring(beginCharacterIndex, endCharacterIndex);
+            float lineMeasuredWidth = paint.measureText(line);
+            int leadingSpacesCount = 0;
+            if (beginCharacterIndex == 0) {
+                for (int i = 0; i < Math.min(2, line.length() - 1); i++) {
+                    if (isSpace(paragraph.charAt(i))) {
+                        leadingSpacesCount++;
+                    }
+                }
+            }
+            float extraSpacing;
+            if (!isLastLine) {
+                extraSpacing = (maxTextWidth - lineMeasuredWidth) / (line.length() - leadingSpacesCount);
             } else {
-                characterWidth = paint.measureText(character) + extraSpacing;
+                extraSpacing = 0;
             }
-            if (speakingSentence != null
-                    && chapterId.equals(speakingSentence.chapterId)
-                    && !speakingSentence.isTitle
-                    && speakingSentence.paragraphIndex == paragraphIndex
-                    && left >= speakingSentence.beginCharacterIndex
-                    && left < speakingSentence.endCharacterIndex) {
-                drawSpeakingBackground(canvas, x, y, characterWidth, lineHeight, paint);
+            for (int left = beginCharacterIndex; left < endCharacterIndex; ) {
+                char c = paragraph.charAt(left);
+                int right = Math.min((isUtf16LeadSurrogate(c) ? left + 2 : left + 1), endCharacterIndex);
+                String character = paragraph.substring(left, right);
+                float characterWidth;
+                if (left < leadingSpacesCount) {
+                    characterWidth = paint.measureText(character);
+                } else {
+                    characterWidth = paint.measureText(character) + extraSpacing;
+                }
+                if (speakingSentence != null
+                        && chapterId.equals(speakingSentence.chapterId)
+                        && !speakingSentence.isTitle
+                        && speakingSentence.paragraphIndex == paragraphIndex
+                        && left >= speakingSentence.beginCharacterIndex
+                        && left < speakingSentence.endCharacterIndex) {
+                    drawSpeakingBackground(canvas, x, y, characterWidth, lineHeight, paint);
+                }
+                canvas.drawText(character, x, y, paint);
+                x += characterWidth;
+                left = right;
             }
-            canvas.drawText(character, x, y, paint);
-            x += characterWidth;
-            left = right;
         }
     }
 
