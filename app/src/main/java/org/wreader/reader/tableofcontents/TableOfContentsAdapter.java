@@ -52,20 +52,17 @@ class TableOfContentsAdapter extends RecyclerView.Adapter<TableOfContentsAdapter
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.item_view: {
-                if (Chapter.class.isInstance(view.getTag())) {
-                    Chapter chapter = (Chapter) view.getTag();
-                    Intent intent = new Intent();
-                    intent.putExtra(TableOfContentsActivity.PARAM_KEY_CHAPTER_ID, chapter.id);
-                    context.setResult(TableOfContentsActivity.RESULT_OK, intent);
-                    context.finish();
-                }
-                break;
+        final int viewId = view.getId();
+        if (viewId == R.id.item_view) {
+            if (view.getTag() instanceof Chapter) {
+                Chapter chapter = (Chapter) view.getTag();
+                Intent intent = new Intent();
+                intent.putExtra(TableOfContentsActivity.PARAM_KEY_CHAPTER_ID, chapter.id);
+                context.setResult(TableOfContentsActivity.RESULT_OK, intent);
+                context.finish();
             }
-            default: {
-                break;
-            }
+        } else {
+            // Do nothing.
         }
     }
 

@@ -63,15 +63,12 @@ public class TableOfContentsActivity extends BaseActivity implements View.OnClic
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.cancel_button: {
-                setResult(RESULT_CANCELED);
-                finish();
-                break;
-            }
-            default: {
-                break;
-            }
+        final int viewId = view.getId();
+        if (viewId == R.id.cancel_button) {
+            setResult(RESULT_CANCELED);
+            finish();
+        } else {
+            // Do nothing.
         }
     }
 }

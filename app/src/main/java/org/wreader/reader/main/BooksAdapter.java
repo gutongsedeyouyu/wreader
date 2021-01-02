@@ -13,6 +13,9 @@ import org.wreader.reader.core.helper.Router;
 import org.wreader.reader.reader.Book;
 import org.wreader.reader.reader.BookDataHelper;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -62,19 +65,20 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.ViewHolder> 
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.item_view: {
-                if (Book.class.isInstance(view.getTag())) {
-                    Book book = (Book) view.getTag();
-                    book.lastReadTime = System.currentTimeMillis();
-                    BookDataHelper.saveBooks(books);
-                    Router.route(context, String.format("wreader://readBook?id=%s", book.id));
+        final int viewId = view.getId();
+        if (viewId == R.id.item_view) {
+            if (view.getTag() instanceof Book) {
+                Book book = (Book) view.getTag();
+                book.lastReadTime = System.currentTimeMillis();
+                BookDataHelper.saveBooks(books);
+                try {
+                    Router.route(context, String.format("wreader://readBook?id=%s", URLEncoder.encode(book.id, StandardCharsets.UTF_8.name())));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
                 }
-                break;
             }
-            default: {
-                break;
-            }
+        } else {
+            // Do nothing.
         }
     }
 
@@ -84,13 +88,13 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.ViewHolder> 
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView bookNameTextView;
+        private final TextView bookNameTextView;
 
-        private TextView introductionTextView;
+        private final TextView introductionTextView;
 
-        private TextView lastReadTimeLabel;
+        private final TextView lastReadTimeLabel;
 
-        private TextView lastReadTimeTextView;
+        private final TextView lastReadTimeTextView;
 
         ViewHolder(View itemView) {
             super(itemView);

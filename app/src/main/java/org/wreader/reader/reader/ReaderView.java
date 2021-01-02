@@ -381,12 +381,11 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.reader_view: {
-                if (speakingSentence != null) {
-                    getReaderActivity().showTtsMenuView(true);
-                    break;
-                }
+        final int viewId = view.getId();
+        if (viewId == R.id.reader_view) {
+            if (speakingSentence != null) {
+                getReaderActivity().showTtsMenuView(true);
+            } else {
                 if (actionDownPoint.x < getWidth() * 0.2f) {
                     jumpToPreviousPageAnimated();
                 } else if (actionDownPoint.x > getWidth() * 0.8f) {
@@ -394,11 +393,9 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                 } else {
                     getReaderActivity().showMenuView(true);
                 }
-                break;
             }
-            default: {
-                break;
-            }
+        } else {
+            // Do nothing.
         }
     }
 

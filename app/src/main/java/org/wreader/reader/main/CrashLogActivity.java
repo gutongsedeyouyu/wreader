@@ -34,14 +34,11 @@ public class CrashLogActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.action_bar_left_button: {
-                finish();
-                break;
-            }
-            default: {
-                break;
-            }
+        final int viewId = view.getId();
+        if (viewId == R.id.action_bar_left_button) {
+            finish();
+        } else {
+            // Do nothing.
         }
     }
 }

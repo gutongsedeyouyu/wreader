@@ -44,14 +44,11 @@ class ReaderLoadFailedView implements ReaderChildView, View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.reload_button: {
-                readerView.reloadCurrentChapterIfNotLoaded();
-                break;
-            }
-            default: {
-                break;
-            }
+        final int viewId = view.getId();
+        if (viewId == R.id.reload_button) {
+            readerView.reloadCurrentChapterIfNotLoaded();
+        } else {
+            // Do nothing.
         }
     }
 }

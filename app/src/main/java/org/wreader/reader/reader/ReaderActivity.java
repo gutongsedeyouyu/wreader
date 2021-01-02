@@ -228,154 +228,114 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.menu_view: {
-                hideMenuView(true);
-                break;
-            }
-            case R.id.back_button: {
-                finish();
-                break;
-            }
-            case R.id.table_of_contents_button: {
-                hideMenuView(true);
-                Intent intent = new Intent(this, TableOfContentsActivity.class);
-                intent.putExtra(PARAM_KEY_BOOK_ID, bookId);
-                intent.putExtra(TableOfContentsActivity.PARAM_KEY_SELECTED_CHAPTER_ID,
-                                readerView.getCurrentPage().chapterId);
-                startActivityForResult(intent, REQUEST_CODE_TABLE_OF_CONTENTS);
-                break;
-            }
-            case R.id.previous_chapter_button: {
-                String currentChapterId = readerView.getCurrentPage().chapterId;
-                for (int i = 1; i < readerView.getTableOfContents().size(); i++) {
-                    if (currentChapterId.equals(readerView.getTableOfContents().get(i).id)) {
-                        readerView.setCurrentChapterId(readerView.getTableOfContents().get(i - 1).id);
-                        updateProgressBar(true);
-                        break;
-                    }
+        final int viewId = view.getId();
+        if (viewId == R.id.menu_view) {
+            hideMenuView(true);
+        } else if (viewId == R.id.back_button) {
+            finish();
+        } else if (viewId == R.id.table_of_contents_button) {
+            hideMenuView(true);
+            Intent intent = new Intent(this, TableOfContentsActivity.class);
+            intent.putExtra(PARAM_KEY_BOOK_ID, bookId);
+            intent.putExtra(TableOfContentsActivity.PARAM_KEY_SELECTED_CHAPTER_ID,
+                            readerView.getCurrentPage().chapterId);
+            startActivityForResult(intent, REQUEST_CODE_TABLE_OF_CONTENTS);
+        } else if (viewId == R.id.previous_chapter_button) {
+            String currentChapterId = readerView.getCurrentPage().chapterId;
+            for (int i = 1; i < readerView.getTableOfContents().size(); i++) {
+                if (currentChapterId.equals(readerView.getTableOfContents().get(i).id)) {
+                    readerView.setCurrentChapterId(readerView.getTableOfContents().get(i - 1).id);
+                    updateProgressBar(true);
+                    break;
                 }
-                break;
             }
-            case R.id.next_chapter_button: {
-                String currentChapterId = readerView.getCurrentPage().chapterId;
-                for (int i = 0; i < readerView.getTableOfContents().size() - 1; i++) {
-                    if (currentChapterId.equals(readerView.getTableOfContents().get(i).id)) {
-                        readerView.setCurrentChapterId(readerView.getTableOfContents().get(i + 1).id);
-                        updateProgressBar(true);
-                        break;
-                    }
+        } else if (viewId == R.id.next_chapter_button) {
+            String currentChapterId = readerView.getCurrentPage().chapterId;
+            for (int i = 0; i < readerView.getTableOfContents().size() - 1; i++) {
+                if (currentChapterId.equals(readerView.getTableOfContents().get(i).id)) {
+                    readerView.setCurrentChapterId(readerView.getTableOfContents().get(i + 1).id);
+                    updateProgressBar(true);
+                    break;
                 }
-                break;
             }
-            case R.id.text_size_smaller_button: {
-                if (textSizeSettingIndex > 0) {
-                    setTextSizeSettingIndex(textSizeSettingIndex - 1);
-                }
-                updateSettingsBar();
-                break;
+        } else if (viewId == R.id.text_size_smaller_button) {
+            if (textSizeSettingIndex > 0) {
+                setTextSizeSettingIndex(textSizeSettingIndex - 1);
             }
-            case R.id.text_size_larger_button: {
-                if (textSizeSettingIndex < TEXT_SIZE_SETTINGS.length - 1) {
-                    setTextSizeSettingIndex(textSizeSettingIndex + 1);
-                }
-                updateSettingsBar();
-                break;
+            updateSettingsBar();
+        } else if (viewId == R.id.text_size_larger_button) {
+            if (textSizeSettingIndex < TEXT_SIZE_SETTINGS.length - 1) {
+                setTextSizeSettingIndex(textSizeSettingIndex + 1);
             }
-            case R.id.tts_button: {
-                ReaderTtsHelper ttsHelper = readerView.getTtsHelper();
-                ttsHelper.start(ttsHelper.getFirstSentenceInPage(readerView.getCurrentPage()));
-                hideMenuView(true);
-                break;
-            }
-            case R.id.tts_menu_view: {
-                readerView.getTtsHelper().resume();
-                hideTtsMenuView(true);
-                break;
-            }
-            case R.id.tts_stop_button: {
-                readerView.getTtsHelper().stop();
-                hideTtsMenuView(true);
-                break;
-            }
-            default: {
-                break;
-            }
+            updateSettingsBar();
+        } else if (viewId == R.id.tts_button) {
+            ReaderTtsHelper ttsHelper = readerView.getTtsHelper();
+            ttsHelper.start(ttsHelper.getFirstSentenceInPage(readerView.getCurrentPage()));
+            hideMenuView(true);
+        } else if (viewId == R.id.tts_menu_view) {
+            readerView.getTtsHelper().resume();
+            hideTtsMenuView(true);
+        } else if (viewId == R.id.tts_stop_button) {
+            readerView.getTtsHelper().stop();
+            hideTtsMenuView(true);
+        } else {
+            // Do nothing.
         }
     }
 
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-        switch (compoundButton.getId()) {
-            case R.id.progress_check_box: {
-                if (isChecked) {
-                    settingsCheckBox.setChecked(false);
-                    updateProgressBar(true);
-                }
-                if (isChecked) {
-                    showMenuProgressBar(true);
-                } else {
-                    hideMenuProgressBar(true);
-                }
-                break;
+        final int viewId = compoundButton.getId();
+        if (viewId == R.id.progress_check_box) {
+            if (isChecked) {
+                settingsCheckBox.setChecked(false);
+                updateProgressBar(true);
             }
-            case R.id.settings_check_box: {
-                if (isChecked) {
-                    progressCheckBox.setChecked(false);
-                    updateSettingsBar();
-                }
-                if (isChecked) {
-                    showMenuSettingsBar(true);
-                } else {
-                    hideMenuSettingsBar(true);
-                }
-                break;
+            if (isChecked) {
+                showMenuProgressBar(true);
+            } else {
+                hideMenuProgressBar(true);
             }
-            case R.id.color_setting_radio_button_0: {
-                if (isChecked) {
-                    setColorSettingIndex(0);
-                }
-                break;
+        } else if (viewId == R.id.settings_check_box) {
+            if (isChecked) {
+                progressCheckBox.setChecked(false);
+                updateSettingsBar();
             }
-            case R.id.color_setting_radio_button_1: {
-                if (isChecked) {
-                    setColorSettingIndex(1);
-                }
-                break;
+            if (isChecked) {
+                showMenuSettingsBar(true);
+            } else {
+                hideMenuSettingsBar(true);
             }
-            case R.id.color_setting_radio_button_2: {
-                if (isChecked) {
-                    setColorSettingIndex(2);
-                }
-                break;
+        } else if (viewId == R.id.color_setting_radio_button_0) {
+            if (isChecked) {
+                setColorSettingIndex(0);
             }
-            case R.id.color_setting_radio_button_3: {
-                if (isChecked) {
-                    setColorSettingIndex(3);
-                }
-                break;
+        } else if (viewId == R.id.color_setting_radio_button_1) {
+            if (isChecked) {
+                setColorSettingIndex(1);
             }
-            case R.id.color_setting_radio_button_4: {
-                if (isChecked) {
-                    setColorSettingIndex(4);
-                }
-                break;
+        } else if (viewId == R.id.color_setting_radio_button_2) {
+            if (isChecked) {
+                setColorSettingIndex(2);
             }
-            case R.id.page_turning_setting_radio_button_0: {
-                if (isChecked) {
-                    setPageTurningSettingIndex(0);
-                }
-                break;
+        } else if (viewId == R.id.color_setting_radio_button_3) {
+            if (isChecked) {
+                setColorSettingIndex(3);
             }
-            case R.id.page_turning_setting_radio_button_1: {
-                if (isChecked) {
-                    setPageTurningSettingIndex(1);
-                }
-                break;
+        } else if (viewId == R.id.color_setting_radio_button_4) {
+            if (isChecked) {
+                setColorSettingIndex(4);
             }
-            default: {
-                break;
+        } else if (viewId == R.id.page_turning_setting_radio_button_0) {
+            if (isChecked) {
+                setPageTurningSettingIndex(0);
             }
+        } else if (viewId == R.id.page_turning_setting_radio_button_1) {
+            if (isChecked) {
+                setPageTurningSettingIndex(1);
+            }
+        } else {
+            // Do nothing.
         }
     }
 

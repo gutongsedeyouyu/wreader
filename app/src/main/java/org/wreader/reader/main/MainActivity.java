@@ -53,23 +53,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.action_bar_text_view: {
-                long now = System.currentTimeMillis();
-                if (now < actionBarTextViewClickTime || now - actionBarTextViewClickTime > 3 * 1000) {
-                    actionBarTextViewClickTime = now;
-                    actionBarTextViewClickTimes = 0;
-                    break;
-                }
+        final int viewId = view.getId();
+        if (viewId == R.id.action_bar_text_view) {
+            long now = System.currentTimeMillis();
+            if (now < actionBarTextViewClickTime || now - actionBarTextViewClickTime > 3 * 1000) {
+                actionBarTextViewClickTime = now;
+                actionBarTextViewClickTimes = 0;
+            } else {
                 if (++actionBarTextViewClickTimes == 7) {
                     Intent intent = new Intent(this, CrashLogActivity.class);
                     startActivity(intent);
                 }
-                break;
             }
-            default: {
-                break;
-            }
+        } else {
+            // Do nothing.
         }
     }
 }
