@@ -1,19 +1,21 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import org.wreader.reader.R;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
 
 class ReaderLoadFailedView implements ReaderChildView, View.OnClickListener {
-    private final ReaderView readerView;
+    private final ReaderViewImpl readerView;
 
     private View contentView;
     private TextView loadFailedTextView;
     private View reloadButton;
 
-    ReaderLoadFailedView(ReaderView readerView) {
+    ReaderLoadFailedView(ReaderViewImpl readerView) {
         this.readerView = readerView;
         contentView = LayoutInflater.from(readerView.getContext()).inflate(
                 R.layout.reader_activity_load_failed, readerView, false);

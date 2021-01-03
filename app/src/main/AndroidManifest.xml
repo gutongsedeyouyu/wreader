@@ -26,7 +26,7 @@
 
         <activity android:name=".main.CrashLogActivity" android:screenOrientation="portrait"/>
 
-        <activity android:name=".reader.ReaderActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".reader.view.ReaderActivity" android:screenOrientation="portrait"/>
 
         <activity android:name=".tableofcontents.TableOfContentsActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>

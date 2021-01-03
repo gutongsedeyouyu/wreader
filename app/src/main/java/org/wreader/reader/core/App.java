@@ -3,7 +3,7 @@ package org.wreader.reader.core;
 import android.app.Application;
 
 import org.wreader.reader.core.helper.FileHelper;
-import org.wreader.reader.reader.ReaderTtsHelper;
+import org.wreader.reader.reader.presenter.ReaderTtsHelper;
 
 import java.io.IOException;
 

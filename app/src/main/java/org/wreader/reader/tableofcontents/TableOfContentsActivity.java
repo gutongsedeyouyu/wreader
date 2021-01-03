@@ -8,8 +8,8 @@ import android.view.View;
 
 import org.wreader.reader.R;
 import org.wreader.reader.core.BaseActivity;
-import org.wreader.reader.reader.BookDataHelper;
-import org.wreader.reader.reader.Chapter;
+import org.wreader.reader.reader.model.BookDataHelper;
+import org.wreader.reader.reader.beans.Chapter;
 
 import java.util.List;
 

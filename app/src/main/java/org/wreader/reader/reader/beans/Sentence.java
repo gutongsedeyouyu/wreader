@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.beans;
 
 public class Sentence {
     public final String chapterId;

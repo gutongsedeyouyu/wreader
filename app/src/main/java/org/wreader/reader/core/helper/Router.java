@@ -6,7 +6,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import org.wreader.reader.R;
-import org.wreader.reader.reader.ReaderActivity;
+import org.wreader.reader.reader.view.ReaderActivity;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;

@@ -1,20 +1,22 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import org.wreader.reader.R;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
 
 class ReaderPaymentRequiredView implements ReaderChildView, View.OnClickListener {
-    private final ReaderView readerView;
+    private final ReaderViewImpl readerView;
 
     private View contentView;
     private View divider;
     private TextView paymentRequiredTextView;
     private View purchaseButton;
 
-    ReaderPaymentRequiredView(ReaderView readerView) {
+    ReaderPaymentRequiredView(ReaderViewImpl readerView) {
         this.readerView = readerView;
         contentView = LayoutInflater.from(readerView.getContext()).inflate(
                 R.layout.reader_activity_payment_required, readerView, false);

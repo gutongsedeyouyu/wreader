@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -16,6 +16,9 @@ import org.wreader.reader.R;
 import org.wreader.reader.core.BaseActivity;
 import org.wreader.reader.core.helper.BatteryBroadcastReceiver;
 import org.wreader.reader.core.helper.SharedPreferencesHelper;
+import org.wreader.reader.reader.beans.ReaderTextSizeSetting;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
+import org.wreader.reader.reader.presenter.ReaderTtsHelper;
 import org.wreader.reader.tableofcontents.TableOfContentsActivity;
 
 public class ReaderActivity extends BaseActivity implements View.OnClickListener,
@@ -58,7 +61,7 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
 
     private String bookId;
 
-    private ReaderView readerView;
+    private ReaderViewImpl readerView;
 
     private View menuView;
 
@@ -105,16 +108,7 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
         readerView.setColorSetting(COLOR_SETTINGS[colorSettingIndex]);
         pageTurningSettingIndex = getPreferencePageTurningSettingIndex();
         readerView.setPageTurningStyle(PAGE_TURNING_SETTINGS[pageTurningSettingIndex]);
-        if (TextUtils.isEmpty(chapterId)) {
-            Page page = BookDataHelper.getReadProgress(bookId);
-            if (page != null) {
-                readerView.init(bookId, page);
-            } else {
-                readerView.init(bookId, new Page("", 0.0f));
-            }
-        } else {
-            readerView.init(bookId, new Page(chapterId, 0.0f));
-        }
+        readerView.init(bookId, chapterId);
         //
         // Menu view
         //
@@ -202,12 +196,7 @@ public class ReaderActivity extends BaseActivity implements View.OnClickListener
     @Override
     protected void onPause() {
         super.onPause();
-        Page currentPage = readerView.getCurrentPage();
-        if (currentPage != null) {
-            BookDataHelper.setReadProgress(bookId,
-                                           currentPage.chapterId,
-                                           readerView.calculateProgressInChapter(currentPage));
-        }
+        readerView.getPresenter().saveLastReadProgress();
     }
 
     @Override

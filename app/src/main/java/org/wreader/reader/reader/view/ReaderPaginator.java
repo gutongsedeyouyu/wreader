@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -10,6 +10,11 @@ import android.view.View;
 
 import org.wreader.reader.R;
 import org.wreader.reader.core.helper.BatteryBroadcastReceiver;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.Page;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
+import org.wreader.reader.reader.beans.Sentence;
+import org.wreader.reader.reader.beans.ReaderTextSizeSetting;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -24,7 +29,7 @@ import static org.wreader.reader.core.helper.TextHelper.isSpace;
 import static org.wreader.reader.core.helper.TextHelper.isUtf16LeadSurrogate;
 import static org.wreader.reader.core.helper.TextHelper.isUtf16TrailSurrogate;
 
-class ReaderPaginator {
+public class ReaderPaginator {
     private static final float DENSITY = Resources.getSystem().getDisplayMetrics().density;
 
     private static final Format TIME_FORMAT = new SimpleDateFormat("HH:mm", Locale.getDefault());
@@ -57,7 +62,7 @@ class ReaderPaginator {
         }
     }
 
-    private final ReaderView readerView;
+    private final ReaderViewImpl readerView;
     private final boolean remeasureLine;
     private final boolean justifyLineInParagraph;
     private final Paint paint;
@@ -82,27 +87,27 @@ class ReaderPaginator {
     private int textColorPrimary;
     private int textColorSecondary;
 
-    ReaderPaginator(ReaderView readerView, boolean remeasureLine, boolean justifyLineInParagraph) {
+    public ReaderPaginator(ReaderViewImpl readerView, boolean remeasureLine, boolean justifyLineInParagraph) {
         this.readerView = readerView;
         this.remeasureLine = remeasureLine;
         this.justifyLineInParagraph = justifyLineInParagraph;
         this.paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     }
 
-    void setTextSizeSetting(ReaderTextSizeSetting textSizeSetting) {
+    public void setTextSizeSetting(ReaderTextSizeSetting textSizeSetting) {
         textSizeSmall = textSizeSetting.textSizeSmall * DENSITY;
         textSizeDefault = textSizeSetting.textSizeDefault * DENSITY;
         textSizeLarge = textSizeSetting.textSizeLarge * DENSITY;
     }
 
-    void setColorSetting(ReaderColorSetting colorSetting) {
+    public void setColorSetting(ReaderColorSetting colorSetting) {
         backgroundColor = colorSetting.backgroundColor;
         speakingBackgroundColor = colorSetting.speakingBackgroundColor;
         textColorPrimary = colorSetting.textColorPrimary;
         textColorSecondary = colorSetting.textColorSecondary;
     }
 
-    void recalculatePages(Chapter chapter, float progress) {
+    public void recalculatePages(Chapter chapter, float progress) {
         Log.d("WReader", "ReaderPaginator.recalculatePages() - chapter.id=" + chapter.id
                 + ", progress=" + progress);
         ArrayList<Page> pages = new ArrayList<>();
@@ -122,7 +127,7 @@ class ReaderPaginator {
         chapter.pages = pages;
     }
 
-    Page getPreviousPage(Page page) {
+    public Page getPreviousPage(Page page) {
         if (page == null) {
             return null;
         }
@@ -156,7 +161,7 @@ class ReaderPaginator {
         }
     }
 
-    Page getNextPage(Page page) {
+    public Page getNextPage(Page page) {
         if (page == null) {
             return null;
         }
@@ -190,7 +195,7 @@ class ReaderPaginator {
         }
     }
 
-    Page getPageAtProgressInBook(float progressInBook) {
+    public Page getPageAtProgressInBook(float progressInBook) {
         int chaptersCount = readerView.getTableOfContents().size();
         if (chaptersCount == 0) {
             return readerView.getCurrentPage();
@@ -200,7 +205,7 @@ class ReaderPaginator {
         return new Page(chapter.id, 0.0f);
     }
 
-    float calculateProgressInBook(String chapterId, int pageIndex) {
+    public float calculateProgressInBook(String chapterId, int pageIndex) {
         int chaptersCount = readerView.getTableOfContents().size();
         if (chaptersCount == 0) {
             return 0.0f;
@@ -224,11 +229,11 @@ class ReaderPaginator {
         return 0.0f;
     }
 
-    void drawBackground(Canvas canvas) {
+    public void drawBackground(Canvas canvas) {
         canvas.drawColor(backgroundColor);
     }
 
-    void drawPage(Page page, Canvas canvas) {
+    public void drawPage(Page page, Canvas canvas) {
         if (page != null) {
             drawOrCalculate(readerView.getCachedChapter(page.chapterId), page.progress, page.pageIndex,
                             page.beginParagraphIndex, page.beginCharacterIndex,

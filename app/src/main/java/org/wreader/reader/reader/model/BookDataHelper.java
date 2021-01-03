@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.model;
 
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -8,6 +8,9 @@ import com.alibaba.fastjson.JSON;
 
 import org.wreader.reader.core.helper.FileHelper;
 import org.wreader.reader.core.helper.SharedPreferencesHelper;
+import org.wreader.reader.reader.beans.Book;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.Page;
 
 import java.io.IOException;
 import java.util.Collections;

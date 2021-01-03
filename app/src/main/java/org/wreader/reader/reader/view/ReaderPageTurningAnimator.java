@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -13,9 +13,11 @@ import android.graphics.Region;
 import android.graphics.drawable.GradientDrawable;
 import android.widget.Scroller;
 
-class ReaderPageTurningAnimator {
-    static final int STYLE_PAGE_CURL = 0;
-    static final int STYLE_COVER = 1;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
+
+public class ReaderPageTurningAnimator {
+    public static final int STYLE_PAGE_CURL = 0;
+    public static final int STYLE_COVER = 1;
 
     private static final ReaderPageTurningAnimator INSTANCE = new ReaderPageTurningAnimator();
 
@@ -26,20 +28,20 @@ class ReaderPageTurningAnimator {
     private ReaderPageTurningAnimator() {
     }
 
-    static ReaderPageTurningAnimator getInstance() {
+    public static ReaderPageTurningAnimator getInstance() {
         return INSTANCE;
     }
 
-    void setStyle(int style) {
+    public void setStyle(int style) {
         this.style = style;
     }
 
-    void setColorSetting(ReaderColorSetting colorSetting) {
+    public void setColorSetting(ReaderColorSetting colorSetting) {
         curlPageTurningAnimator.setColorSetting(colorSetting);
         coverPageTurningAnimator.setColorSetting(colorSetting);
     }
 
-    void draw(Canvas canvas, Bitmap bottomPageBitmap, Bitmap topPageBitmap,
+    public void draw(Canvas canvas, Bitmap bottomPageBitmap, Bitmap topPageBitmap,
               PointF actionDownPoint, PointF actionMovePoint, float actionDeltaX) {
         switch (style) {
             case STYLE_PAGE_CURL: {
@@ -58,7 +60,7 @@ class ReaderPageTurningAnimator {
         }
     }
 
-    void startScroll(Scroller scroller, int width, int height,
+    public void startScroll(Scroller scroller, int width, int height,
                      PointF actionDownPoint, PointF actionMovePoint, int actionDirection) {
         switch (style) {
             case STYLE_PAGE_CURL: {

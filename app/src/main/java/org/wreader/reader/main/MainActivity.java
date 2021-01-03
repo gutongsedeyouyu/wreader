@@ -9,8 +9,8 @@ import android.widget.TextView;
 
 import org.wreader.reader.R;
 import org.wreader.reader.core.BaseActivity;
-import org.wreader.reader.reader.Book;
-import org.wreader.reader.reader.BookDataHelper;
+import org.wreader.reader.reader.beans.Book;
+import org.wreader.reader.reader.model.BookDataHelper;
 
 import java.util.List;
 

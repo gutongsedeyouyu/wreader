@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.wreader.reader.R;
-import org.wreader.reader.reader.Chapter;
+import org.wreader.reader.reader.beans.Chapter;
 
 import java.util.List;
 

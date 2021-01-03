@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.view;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -14,22 +14,22 @@ import android.widget.FrameLayout;
 import android.widget.Scroller;
 
 import org.wreader.reader.R;
+import org.wreader.reader.core.helper.Router;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.Page;
+import org.wreader.reader.reader.beans.ReaderTextSizeSetting;
+import org.wreader.reader.reader.beans.ReaderColorSetting;
+import org.wreader.reader.reader.presenter.ReaderPresenter;
+import org.wreader.reader.reader.presenter.ReaderTtsHelper;
+import org.wreader.reader.reader.beans.Sentence;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class ReaderView extends FrameLayout implements View.OnClickListener {
+public class ReaderViewImpl extends FrameLayout implements ReaderView, View.OnClickListener {
     private static final float PAGE_TURNING_THRESHOLD = 10 * Resources.getSystem().getDisplayMetrics().density;
     private static final float SPEAKING_ACTION_THRESHOLD = 20 * Resources.getSystem().getDisplayMetrics().density;
-    private static final long LOAD_CHAPTER_TIMEOUT = 60L * 1000;
 
-    private String bookId;
-    private String lastReadChapterId;
-    private final List<Chapter> tableOfContents = new ArrayList<>();
-    private final Map<String, Chapter> cachedChapters = new HashMap<>();
-    private final Map<String, Long> loadingChapters = new HashMap<>();
+    private ReaderPresenter presenter;
 
     private final ReaderPaginator paginator;
 
@@ -56,11 +56,12 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
     private final PointF speakingActionPoint = new PointF();
     private boolean speakingActionMoving;
 
-    public ReaderView(Context context, AttributeSet attributes) {
+    public ReaderViewImpl(Context context, AttributeSet attributes) {
         super(context, attributes);
         paginator = new ReaderPaginator(this, true, true);
         pageTurningAnimator = ReaderPageTurningAnimator.getInstance();
         scroller = new Scroller(context);
+        presenter = new ReaderPresenter(this);
         ttsHelper = new ReaderTtsHelper(this);
         setOnClickListener(this);
         setWillNotDraw(false);
@@ -73,13 +74,13 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         addView(paymentRequiredView.getContentView());
     }
 
-    void setTextSizeSetting(ReaderTextSizeSetting textSizeSetting) {
+    public void setTextSizeSetting(ReaderTextSizeSetting textSizeSetting) {
         Log.d("WReader", "ReaderView.setTextSizeSetting()");
         paginator.setTextSizeSetting(textSizeSetting);
         onSizeChangedRefreshCurrentPage();
     }
 
-    void setColorSetting(ReaderColorSetting colorSetting) {
+    public void setColorSetting(ReaderColorSetting colorSetting) {
         Log.d("WReader", "ReaderView.setColorSetting()");
         setBackgroundColor(colorSetting.backgroundColor);
         paginator.setColorSetting(colorSetting);
@@ -91,38 +92,44 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
-    void setPageTurningStyle(int pageTurningStyle) {
+    public void setPageTurningStyle(int pageTurningStyle) {
         Log.d("WReader", "ReaderView.setPageTurningStyle()");
         pageTurningAnimator.setStyle(pageTurningStyle);
     }
 
-    void init(final String bookId, final Page page) {
+    public void init(final String bookId, final String chapterId) {
         Log.d("WReader", "ReaderView.init() - bookId=" + bookId
-                + ", page.chapterId=" + page.chapterId
-                + ", page.progress=" + page.progress
-                + ", page.pageIndex=" + page.pageIndex);
+                + ", chapterId=" + chapterId);
+        final Page page = presenter.getInitPage(bookId, chapterId);
         post(new Runnable() {
             @Override
             public void run() {
-                ReaderView.this.bookId = bookId;
                 setCurrentPage(page);
-                loadTableOfContents();
+                presenter.setBookId(bookId);
+                presenter.loadTableOfContents();
             }
         });
     }
 
-    void setCurrentChapterId(String chapterId) {
+    public ReaderPresenter getPresenter() {
+        return presenter;
+    }
+
+    @Override
+    public void setCurrentChapterId(String chapterId) {
         Log.d("WReader", "ReaderView.setCurrentChapterId() - chapterId=" + chapterId);
-        removeCachedChapterIfNotLoaded(chapterId);
+        presenter.removeCachedChapterIfNotLoaded(chapterId);
         setCurrentPage(new Page(chapterId, 0.0f));
     }
 
-    void refreshCurrentPage() {
+    @Override
+    public void refreshCurrentPage() {
         Log.d("WReader", "ReaderView.refreshCurrentPage()");
         setCurrentPage(currentPage);
     }
 
-    float calculateProgressInChapter(Page page) {
+    @Override
+    public float calculateProgressInChapter(Page page) {
         Log.d("WReader", "ReaderView.calculateProgressInChapter()");
         Chapter chapter = getCachedChapter(page.chapterId);
         if (page.pageIndex < 0 || chapter == null || chapter.pages.size() <= 1) {
@@ -132,26 +139,29 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
-    float calculateProgressInBook() {
+    @Override
+    public float calculateProgressInBook() {
         Log.d("WReader", "ReaderView.calculateProgressInBook()");
         return paginator.calculateProgressInBook(currentPage.chapterId, currentPage.pageIndex);
     }
 
-    void setProgressInBook(float progressInBook) {
+    @Override
+    public void setProgressInBook(float progressInBook) {
         Log.d("WReader", "ReaderView.setProgressInBook() - progressInBook=" + progressInBook);
         Page page = paginator.getPageAtProgressInBook(progressInBook);
-        removeCachedChapterIfNotLoaded(page.chapterId);
+        presenter.removeCachedChapterIfNotLoaded(page.chapterId);
         setCurrentPage(page);
     }
 
-    void reloadCurrentChapterIfNotLoaded() {
+    @Override
+    public void reloadCurrentChapterIfNotLoaded() {
         Log.d("WReader", "ReaderView.reloadCurrentChapterIfNotLoaded()");
-        if (removeCachedChapterIfNotLoaded(currentPage.chapterId)) {
+        if (presenter.removeCachedChapterIfNotLoaded(currentPage.chapterId)) {
             setCurrentPage(new Page(currentPage.chapterId, currentPage.progress));
         }
     }
 
-    void onChildViewUpdated() {
+    public void onChildViewUpdated() {
         Log.d("WReader", "ReaderView.onChildViewUpdated()");
         paginator.drawBackground(currentPageCanvas);
         paginator.drawPage(currentPage, currentPageCanvas);
@@ -160,43 +170,46 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         invalidate();
     }
 
-    Page getCurrentPage() {
+    @Override
+    public Page getCurrentPage() {
         return currentPage;
     }
 
-    List<Chapter> getTableOfContents() {
-        return tableOfContents;
+    @Override
+    public List<Chapter> getTableOfContents() {
+        return presenter.getTableOfContents();
     }
 
-    Chapter getCachedChapter(String chapterId) {
-        return cachedChapters.get(chapterId);
+    @Override
+    public Chapter getCachedChapter(String chapterId) {
+        return presenter.getCachedChapter(chapterId);
     }
 
-    ReaderPaginator getPaginator() {
+    @Override
+    public ReaderPaginator getPaginator() {
         return paginator;
     }
 
-    ReaderTtsHelper getTtsHelper() {
+    @Override
+    public ReaderTtsHelper getTtsHelper() {
         return ttsHelper;
     }
 
-    ReaderActivity getReaderActivity() {
-        return (ReaderActivity) getContext();
-    }
-
-    ReaderChildView getLoadFailedView() {
+    public ReaderChildView getLoadFailedView() {
         return loadFailedView;
     }
 
-    ReaderChildView getPaymentRequiredView() {
+    public ReaderChildView getPaymentRequiredView() {
         return paymentRequiredView;
     }
 
-    Sentence getSpeakingSentence() {
+    @Override
+    public Sentence getSpeakingSentence() {
         return speakingSentence;
     }
 
-    void setSpeakingSentence(Sentence speakingSentence) {
+    @Override
+    public void setSpeakingSentence(Sentence speakingSentence) {
         if (speakingSentence == null) {
             this.speakingSentence = null;
             setCurrentPage(currentPage);
@@ -220,6 +233,14 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                 setCurrentPage(page);
                 break;
             }
+        }
+    }
+
+    @Override
+    public void onTtsError(String message) {
+        setSpeakingSentence(null);
+        if (!TextUtils.isEmpty(message)) {
+            Router.toast(getContext(), message);
         }
     }
 
@@ -418,14 +439,18 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         }
     }
 
-    private void setCurrentPage(Page page) {
+    public ReaderActivity getReaderActivity() {
+        return (ReaderActivity) getContext();
+    }
+
+    public void setCurrentPage(Page page) {
         if (page == null) {
             throw new IllegalArgumentException();
         }
         Log.d("WReader", "ReaderView.setCurrentPage() - page.chapterId=" + page.chapterId
                 + ", page.progress=" + page.progress
                 + ", page.pageIndex=" + page.pageIndex);
-        currentPage = revisePage(page, true);
+        currentPage = presenter.revisePage(page, true);
         paginator.drawBackground(currentPageCanvas);
         paginator.drawPage(currentPage, currentPageCanvas);
         if (actionDeltaX == 0.0f) {
@@ -434,7 +459,13 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
         invalidate();
     }
 
-    private void setNewPage(Page page) {
+    @Override
+    public Page getNewPage() {
+        return newPage;
+    }
+
+    @Override
+    public void setNewPage(Page page) {
         if (page != null) {
             Log.d("WReader", "ReaderView.setNewPage() - page.chapterId=" + page.chapterId
                     + ", page.progress=" + page.progress
@@ -443,44 +474,15 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
             Log.d("WReader", "ReaderView.setNewPage() - page=null");
         }
         if (newPage == null && page != null) {
-            removeCachedChapterIfNotLoaded(page.chapterId);
+            presenter.removeCachedChapterIfNotLoaded(page.chapterId);
         }
-        newPage = revisePage(page, false);
+        newPage = presenter.revisePage(page, false);
         paginator.drawBackground(newPageCanvas);
         paginator.drawPage(newPage, newPageCanvas);
         if (newPage != null) {
             updateChildViews(false);
         }
         invalidate();
-    }
-
-    private Page revisePage(Page page, boolean isCurrentPage) {
-        if (page == null) {
-            return null;
-        }
-        //
-        // This chapter is not loaded yet.
-        //
-        Chapter chapter = getCachedChapter(page.chapterId);
-        if (chapter == null) {
-            loadChapter(page.chapterId);
-            return page;
-        }
-        //
-        // This chapter is already loaded.
-        //
-        if (isCurrentPage
-                && chapter.status == Chapter.STATUS_LOADED
-                && !chapter.id.equals(lastReadChapterId)) {
-            lastReadChapterId = chapter.id;
-            onReadChapter(chapter);
-        }
-        if (page.pageIndex < 0) {
-            paginator.recalculatePages(chapter, page.progress);
-            return chapter.pages.get(Math.round((chapter.pages.size() - 1) * page.progress));
-        } else {
-            return page;
-        }
     }
 
     private void updateChildViews(boolean isForCurrentPage) {
@@ -509,17 +511,6 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
                 break;
             }
         }
-    }
-
-    private boolean removeCachedChapterIfNotLoaded(String chapterId) {
-        Chapter chapter = getCachedChapter(chapterId);
-        if (chapter == null || chapter.status == Chapter.STATUS_LOADED) {
-            return false;
-        }
-        cachedChapters.remove(chapterId);
-        Log.d("WReader", "ReaderView.removeCachedChapterIfNotLoaded() - removed " + chapterId);
-        removeCachedChapterIfNotLoaded(chapter.nextId);
-        return true;
     }
 
     private void onSizeChangedRefreshCurrentPage() {
@@ -558,64 +549,6 @@ public class ReaderView extends FrameLayout implements View.OnClickListener {
             actionDirectionX = -1;
             pageTurningAnimator.startScroll(scroller, getWidth(), getHeight(),
                                             actionDownPoint, actionMovePoint, actionDirectionX);
-        }
-    }
-
-    private void loadTableOfContents() {
-        Log.d("WReader", "ReaderView.loadTableOfContents() [start]");
-        BookDataHelper.loadTableOfContents(bookId, new BookDataHelper.DataLoadedCallback<List<Chapter>>() {
-            @Override
-            public void onDataLoaded(List<Chapter> chapters) {
-                Log.d("WReader", "ReaderView.loadTableOfContents() [done]");
-                if (chapters == null) {
-                    return;
-                }
-                tableOfContents.clear();
-                tableOfContents.addAll(chapters);
-                setCurrentPage(currentPage);
-            }
-        });
-    }
-
-    private void loadChapter(final String chapterId) {
-        Long loadingStartTime = loadingChapters.get(chapterId);
-        if (loadingStartTime != null && loadingStartTime > System.currentTimeMillis() - LOAD_CHAPTER_TIMEOUT) {
-            return;
-        }
-        loadingChapters.put(chapterId, System.currentTimeMillis());
-        Log.d("WReader", "ReaderView.loadChapter() [start] - chapterId=" + chapterId);
-        BookDataHelper.loadChapter(bookId, chapterId, new BookDataHelper.DataLoadedCallback<Chapter>() {
-            @Override
-            public void onDataLoaded(final Chapter chapter) {
-                loadingChapters.remove(chapterId);
-                if (chapter == null) {
-                    return;
-                }
-                Log.d("WReader", "ReaderView.loadChapter() [done] - chapterId=" + chapterId
-                        + ", chapter.status=" + chapter.status);
-                if (TextUtils.isEmpty(currentPage.chapterId)
-                        || currentPage.chapterId.equals(chapter.id)) {
-                    float progress = calculateProgressInChapter(currentPage);
-                    cachedChapters.put(chapter.id, chapter);
-                    setCurrentPage(new Page(chapter.id, progress));
-                } else if (newPage != null
-                        && newPage.chapterId != null
-                        && newPage.chapterId.equals(chapter.id)) {
-                    float progress = calculateProgressInChapter(newPage);
-                    cachedChapters.put(chapter.id, chapter);
-                    setNewPage(new Page(chapter.id, progress));
-                } else {
-                    cachedChapters.put(chapter.id, chapter);
-                }
-            }
-        });
-    }
-
-    private void onReadChapter(Chapter chapter) {
-        Log.d("WReader", "ReaderView.onReadChapter() - chapter.id=" + chapter.id);
-        if (!TextUtils.isEmpty(chapter.nextId)
-                && (getCachedChapter(chapter.nextId) == null || removeCachedChapterIfNotLoaded(chapter.nextId))) {
-            loadChapter(chapter.nextId);
         }
     }
 }

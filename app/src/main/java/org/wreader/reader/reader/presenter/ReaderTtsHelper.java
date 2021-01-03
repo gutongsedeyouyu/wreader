@@ -1,4 +1,4 @@
-package org.wreader.reader.reader;
+package org.wreader.reader.reader.presenter;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -12,7 +12,10 @@ import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
 
 import org.wreader.reader.core.helper.FileHelper;
-import org.wreader.reader.core.helper.Router;
+import org.wreader.reader.reader.beans.Chapter;
+import org.wreader.reader.reader.beans.Page;
+import org.wreader.reader.reader.beans.Sentence;
+import org.wreader.reader.reader.view.ReaderView;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -60,7 +63,7 @@ public class ReaderTtsHelper {
         }
     }
 
-    ReaderTtsHelper(ReaderView readerView) {
+    public ReaderTtsHelper(ReaderView readerView) {
         this.readerView = readerView;
         this.synthesizer = SpeechSynthesizer.createSynthesizer(readerView.getContext(), new InitListener() {
             @Override
@@ -107,7 +110,7 @@ public class ReaderTtsHelper {
         };
     }
 
-    void start(Sentence sentence) {
+    public void start(Sentence sentence) {
         currentSentence = sentence;
         readerView.setSpeakingSentence(currentSentence);
         if (currentSentence != null) {
@@ -115,50 +118,21 @@ public class ReaderTtsHelper {
         }
     }
 
-    void pause() {
+    public void pause() {
         synthesizer.pauseSpeaking();
     }
 
-    void resume() {
+    public void resume() {
         synthesizer.resumeSpeaking();
     }
 
-    void stop() {
+    public void stop() {
         synthesizer.stopSpeaking();
         currentSentence = null;
         readerView.setSpeakingSentence(null);
     }
 
-    private void onTtsInit(boolean succeeded, String message) {
-        if (succeeded) {
-            Log.d("WReader", "ReaderTtsHelper.onTtsInit() [Succeeded] - message=" + message);
-        } else {
-            Log.e("WReader", "ReaderTtsHelper.onTtsInit() [Failed] - message=" + message);
-        }
-    }
-
-    private void onTtsBegin() {
-    }
-
-    private void onTtsPaused() {
-    }
-
-    private void onTtsResumed() {
-    }
-
-    private void onTtsCompleted() {
-        start(getNextSentence(currentSentence));
-    }
-
-    private void onTtsError(String message) {
-        currentSentence = null;
-        readerView.setSpeakingSentence(null);
-        if (!TextUtils.isEmpty(message)) {
-            Router.toast(readerView.getContext(), message);
-        }
-    }
-
-    Sentence getFirstSentenceInPage(Page page) {
+    public Sentence getFirstSentenceInPage(Page page) {
         if (page == null || page.pageIndex < 0) {
             return null;
         }
@@ -171,8 +145,8 @@ public class ReaderTtsHelper {
         //
         if (page.pageIndex == 0) {
             return new Sentence(page.chapterId, true,
-                                -1, -1, -1,
-                                chapter.title);
+                    -1, -1, -1,
+                    chapter.title);
         }
         //
         // When pageIndex > 0
@@ -180,14 +154,14 @@ public class ReaderTtsHelper {
         Sentence sentence;
         if (page.beginParagraphIndex == 0) {
             sentence = getNextSentence(new Sentence(page.chapterId, true,
-                                                    -1, -1, -1,
-                                                    chapter.title));
+                    -1, -1, -1,
+                    chapter.title));
         } else {
             int paragraphIndex = page.beginParagraphIndex - 1;
             String paragraph = chapter.paragraphs.get(paragraphIndex);
             sentence = getNextSentence(new Sentence(page.chapterId, false,
-                                                    paragraphIndex, 0, paragraph.length(),
-                                                    paragraph));
+                    paragraphIndex, 0, paragraph.length(),
+                    paragraph));
         }
         for (; ; sentence = getNextSentence(sentence)) {
             if (sentence == null || !sentence.chapterId.equals(page.chapterId)) {
@@ -199,7 +173,7 @@ public class ReaderTtsHelper {
         }
     }
 
-    Sentence getPreviousSentence(Sentence sentence) {
+    public Sentence getPreviousSentence(Sentence sentence) {
         if (sentence == null || sentence.isTitle) {
             return sentence;
         }
@@ -240,8 +214,8 @@ public class ReaderTtsHelper {
             // 2.3 The previous sentence is the title.
             //
             return new Sentence(chapter.id, true,
-                                -1, -1, -1,
-                                chapter.title);
+                    -1, -1, -1,
+                    chapter.title);
         }
         //
         // 3. Calculate begin character index.
@@ -306,11 +280,11 @@ public class ReaderTtsHelper {
             }
         }
         return new Sentence(chapter.id, false,
-                            paragraphIndex, beginCharacterIndex, endCharacterIndex,
-                            paragraph.substring(beginCharacterIndex, endCharacterIndex));
+                paragraphIndex, beginCharacterIndex, endCharacterIndex,
+                paragraph.substring(beginCharacterIndex, endCharacterIndex));
     }
 
-    Sentence getNextSentence(Sentence sentence) {
+    public Sentence getNextSentence(Sentence sentence) {
         if (sentence == null) {
             return null;
         }
@@ -358,8 +332,8 @@ public class ReaderTtsHelper {
             }
             readerView.getPaginator().recalculatePages(nextChapter, 0.0f);
             return new Sentence(nextChapter.id, true,
-                                -1, -1, -1,
-                                nextChapter.title);
+                    -1, -1, -1,
+                    nextChapter.title);
         }
         //
         // 2. Filter paragraph leading spaces.
@@ -405,7 +379,33 @@ public class ReaderTtsHelper {
             }
         }
         return new Sentence(sentence.chapterId, false,
-                            paragraphIndex, beginCharacterIndex, endCharacterIndex,
-                            paragraph.substring(beginCharacterIndex, endCharacterIndex));
+                paragraphIndex, beginCharacterIndex, endCharacterIndex,
+                paragraph.substring(beginCharacterIndex, endCharacterIndex));
+    }
+
+    private void onTtsInit(boolean succeeded, String message) {
+        if (succeeded) {
+            Log.d("WReader", "ReaderTtsHelper.onTtsInit() [Succeeded] - message=" + message);
+        } else {
+            Log.e("WReader", "ReaderTtsHelper.onTtsInit() [Failed] - message=" + message);
+        }
+    }
+
+    private void onTtsBegin() {
+    }
+
+    private void onTtsPaused() {
+    }
+
+    private void onTtsResumed() {
+    }
+
+    private void onTtsCompleted() {
+        start(getNextSentence(currentSentence));
+    }
+
+    private void onTtsError(String message) {
+        currentSentence = null;
+        readerView.onTtsError(message);
     }
 }
